@@ -1,0 +1,106 @@
+{
+  "name": "selections",
+  "version": "1.0.0",
+  "license": "MIT",
+  "targets": {
+    "iframe": {
+      "source": "src/index.html",
+      "optimize": true
+    }
+  },
+  "source": "src/index.js",
+  "iframe": "bundled/index.html",
+  "scripts": {
+    "prepare": "husky",
+    "build": "rm -rf .parcel-cache && rm -rf bundled && yarn parcel build",
+    "dev": "rm -rf .parcel-cache && rm -rf bundled && yarn parcel watch src/index.js",
+    "serve": "rm -rf .parcel-cache && yarn parcel src/index.html --open",
+    "chain": "hardhat node",
+    "deploy": "hardhat run scripts/deploy.cjs",
+    "test": "hardhat test",
+    "precommit": "echo 'husky is working : )' && lint-staged && yarn build && git add bundled"
+  },
+  "lint-staged": {
+    "*.{js,jsx}": [
+      "eslint --fix",
+      "prettier --write --ignore-unknown"
+    ],
+    "*.{ts,tsx}": [
+      "prettier --write --ignore-unknown"
+    ],
+    "**/*": "prettier --write --ignore-unknown"
+  },
+  "eslintConfig": {
+    "env": {
+      "amd": true,
+      "browser": true,
+      "es2020": true,
+      "node": true
+    },
+    "parserOptions": {
+      "ecmaFeatures": {
+        "modules": true
+      },
+      "ecmaVersion": "latest",
+      "parser": "@babel/eslint-parser",
+      "sourceType": "module"
+    },
+    "extends": [
+      "eslint:recommended",
+      "prettier"
+    ],
+    "globals": {
+      "assert": "readonly",
+      "before": "readonly",
+      "describe": "readonly",
+      "it": "readonly"
+    },
+    "ignorePatterns": [
+      "/docs/index.js",
+      "**/*.min.js",
+      "**/*.worker.js",
+      "/bundled/*"
+    ],
+    "root": true
+  },
+  "dependencies": {
+    "@types/sinon-chai": "^3.2.3",
+    "ethers": "^5.0.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.24.0",
+    "@babel/eslint-parser": "^7.23.10",
+    "@babel/preset-env": "^7.24.0",
+    "@nomicfoundation/hardhat-chai-matchers": "^2.0.6",
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.9",
+    "@nomicfoundation/hardhat-verify": "^2.0.8",
+    "@nomiclabs/hardhat-ethers": "*",
+    "@nomiclabs/hardhat-ganache": "*",
+    "@nomiclabs/hardhat-waffle": "*",
+    "@openzeppelin/contracts": "^4.6.0",
+    "@parcel/optimizer-data-url": "2.12.0",
+    "@parcel/transformer-inline": "^2.12.0",
+    "@parcel/transformer-inline-string": "2.12.0",
+    "base64-sol": "^1.1.0",
+    "dotenv": "^16.0.1",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "ethereum-waffle": "*",
+    "hardhat": "2.21.0",
+    "hardhat-contract-sizer": "^2.10.0",
+    "hardhat-gas-reporter": "^2.2.0",
+    "husky": "^9.0.11",
+    "lint-staged": "^15.2.2",
+    "parcel": "^2.12.0",
+    "prettier": "3.2.5",
+    "solidity-coverage": "^0.8.6",
+    "xmldom": "^0.6.0"
+  },
+  "type": "module",
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead",
+    "not ie 11"
+  ]
+}
