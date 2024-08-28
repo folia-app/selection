@@ -10,12 +10,14 @@ import "./ExternalMetadata.sol";
 
 contract Selections is Ownable, ERC2981, ERC721 {
     bool public paused = false;
+    uint256 totalSupply = 0;
     uint256 public priceToMint = 0.0025 ether;
     address payable public proceedRecipient;
     address public externalMetadata;
 
     constructor(address externalMetadata_) ERC721("Selections", "SEL") {
         updateExternalMetadata(externalMetadata_);
+        updateProceedRecipient(payable(msg.sender));
     }
 
     receive() external payable {
@@ -42,13 +44,15 @@ contract Selections is Ownable, ERC2981, ERC721 {
         emit EthMoved(proceedRecipient, sent, data, payment);
     }
 
-    function mint(uint256 payment) internal {
-        makePayment(payment);
-        //__mint(msg.sender, day, 1, "");
-    }
-
-    function mint() public payable {
-        mint(priceToMint);
+    function mint() internal {
+        totalSupply += 1;
+        _mint(msg.sender, totalSupply);
+        require(msg.value >= priceToMint, "Incorrect payment");
+        require(proceedRecipient != address(0), "Invalid recipient");
+        (bool sent, bytes memory data) = proceedRecipient.call{
+            value: priceToMint
+        }("");
+        emit EthMoved(proceedRecipient, sent, data, priceToMint);
     }
 
     function supportsInterface(
@@ -100,6 +104,12 @@ contract Selections is Ownable, ERC2981, ERC721 {
 
     function updatePriceToMint(uint256 priceToMint_) public onlyOwner {
         priceToMint = priceToMint_;
+    }
+
+    function updateProceedRecipient(
+        address payable proceedRecipient_
+    ) public onlyOwner {
+        proceedRecipient = proceedRecipient_;
     }
 
     function updatePaused(bool paused_) public onlyOwner {

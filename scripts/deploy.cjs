@@ -22,6 +22,7 @@ async function main() {
 
   const deployedContracts = await deployContracts({ ignoreTesting: true });
   for (const contractName in deployedContracts) {
+    if (contractName == "verificationData") continue;
     await copyABI(contractName);
     const contract = deployedContracts[contractName];
     await saveAddress(contract, contractName);
