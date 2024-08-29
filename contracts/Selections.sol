@@ -44,7 +44,7 @@ contract Selections is Ownable, ERC2981, ERC721 {
         emit EthMoved(proceedRecipient, sent, data, payment);
     }
 
-    function mint() internal {
+    function mint() public payable {
         totalSupply += 1;
         _mint(msg.sender, totalSupply);
         require(msg.value >= priceToMint, "Incorrect payment");
