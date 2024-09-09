@@ -41,7 +41,10 @@ let svg;
 let win_w = window.innerWidth;
 let win_h = window.innerHeight;
 
-var margin = R.int(30, 300);
+let largestSide = win_w >= win_h ? win_w : win_h;
+
+var marginFactor = R.int(3, 10);
+var margin = parseInt(largestSide / marginFactor);
 var amount = R.int(100, 500);
 var elWidth = R.int(2, 300);
 var elHeight = R.int(2, 300);
@@ -69,25 +72,18 @@ let selectionObjectsOrigin = {
 let selectionObjects = generateEmptySelectionObjects();
 let polygonObjects = generatePolygonObjects();
 
+// window.removeEventListener("load", init); // TODO: try this if init is called many times
 window.onload = init;
-
 function init() {
+  console.log("init"); // TODO: remove before mainnet
   svg = document.querySelector("svg");
 
   svg.onclick = function () {
     backgroundOffset++;
     setBg(seed);
   };
-
   setBg(seed);
-  // if (showRectangles) {
-  //   document.querySelector("#deactivateRectangleOptions").style.display =
-  //     "block";
-  // }
-
-  // showTools();
   renderSelections();
-  // listenToTool();
 }
 
 function generateEmptySelectionObjects() {
@@ -153,13 +149,14 @@ function generatePolygonObjects() {
 }
 
 function PolygonObject() {
-  this.startX = R.int(margin, win_w - margin * 2);
-  this.startY = R.int(margin, win_h - margin * 2);
+  this.startX = R.int(margin, win_w - margin);
+  this.startY = R.int(margin, win_h - margin);
   this.polyLength = R.int(400, 1000);
   this.stepVar = R.int(100, 1000);
   this.rnArray = [];
   this.path;
-  this.marginVar = R.int(1, 50);
+  this.marginVar = R.int(1, 30);
+  this.applyMargin = R.int(0, 2) == 0 ? false : true;
 
   this.makePolygon = function () {
     this.path = [[]];
@@ -175,10 +172,13 @@ function PolygonObject() {
       } else {
         polX += -1 * this.stepVar + this.rnArray[i * 2] * this.stepVar * 2;
         polY += -1 * this.stepVar + this.rnArray[i * 2 + 1] * this.stepVar * 2;
+        // -1000 + 0.4 * 1000 * 2 - 1000 + 0.3 * 1000 * 2; // TODO: add this back?
       }
 
-      polX = this.marginize(polX, "w", i);
-      polY = this.marginize(polY, "h", i);
+      if (this.applyMargin) {
+        polX = this.marginize(polX, "w", i);
+        polY = this.marginize(polY, "h", i);
+      }
       this.path[0].push({ X: polX, Y: polY });
     }
     this.path[0].push({ X: parseInt(this.startX), Y: parseInt(this.startY) });
@@ -197,12 +197,12 @@ function PolygonObject() {
           win_w -
           margin -
           this.marginVar +
-          parseInt(this.rnArray[i] * this.marginVar * 2);
+          parseInt(this.rnArray[i * 2] * this.marginVar * 2);
       } else if (pos < margin) {
         pos =
-          margin +
+          margin -
           this.marginVar +
-          parseInt(this.rnArray[i] * this.marginVar * 2);
+          parseInt(this.rnArray[i * 2] * this.marginVar * 2);
       }
     } else if (dim == "h") {
       if (pos > win_h - margin) {
@@ -210,13 +210,13 @@ function PolygonObject() {
           win_h -
           margin -
           this.marginVar +
-          parseInt(this.rnArray[i] * this.marginVar * 2);
+          parseInt(this.rnArray[i * 2 + 1] * this.marginVar * 2);
       }
       if (pos < margin) {
         pos =
-          margin +
+          margin -
           this.marginVar +
-          parseInt(this.rnArray[i] * this.marginVar * 2);
+          parseInt(this.rnArray[i * 2 + 1] * this.marginVar * 2);
       }
     }
     return pos;
@@ -228,9 +228,6 @@ function PolygonObject() {
 }
 
 function renderSelections() {
-  // document.querySelector("#deactivateRectangleOptions").style.display =
-  // showRectangles ? "none" : "block";
-
   // let solution_paths;
   let clip_paths;
   let subj_paths = [
@@ -286,7 +283,6 @@ function renderSelections() {
 
   // grid
   if (showGrid) {
-    let largestSide = win_w >= win_h ? win_w : win_h;
     let gridSize = largestSide / gridVal;
     let clip_paths = [[]];
     for (let i = 0; i <= largestSide / gridSize; i++) {
@@ -322,8 +318,6 @@ function renderSelections() {
     let clip_paths = [[]];
     for (let i = 0; i <= largestSide / gridSize; i++) {
       for (let j = 0; j <= largestSide / gridSize; j++) {
-        //clip_paths.push([{X:i*gridSize+gridMargin,Y:j*gridSize+gridMargin},{X:i*gridSize+gridSize-gridMargin,Y:j*gridSize+gridMargin},{X:i*gridSize+gridSize-gridMargin,Y:j*gridSize+gridSize-gridMargin},{X:i*gridSize+gridMargin,Y:j*gridSize+gridSize-gridMargin}]);
-
         clip_paths = [
           [
             { X: i * gridSize, Y: j * gridSize },
@@ -398,8 +392,18 @@ function renderSelections() {
   }
 
   let svgPath = paths2string(subj_paths);
-  const selection = document.querySelector("#selectionPath");
-  selection.setAttribute("d", svgPath);
+
+  // if path empty show all styles
+  if (svgPath == "M0,0") {
+    showHole = true;
+    showGrid = true;
+    showStar = true;
+    showRectangles = true;
+    showFrame = true;
+    renderSelections();
+  } else {
+    document.querySelector("#selectionPath").setAttribute("d", svgPath);
+  }
 }
 
 function clipPathToAll(subj_paths, clip_paths, type) {
@@ -559,67 +563,16 @@ function setBg(seed) {
 
 let resizeTimer;
 window.onresize = function () {
+  console.log("clearTimeout", resizeTimer); // TODO: remove before mainnet
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(resizeEnded, 500);
 };
 
 function resizeEnded() {
+  console.log("resizeEnded"); // TODO: remove before mainnet
   win_w = window.innerWidth; // tool width added
   win_h = window.innerHeight;
+  largestSide = win_w >= win_h ? win_w : win_h;
+  margin = parseInt(largestSide / marginFactor);
   renderSelections();
 }
-
-// function showTools() {
-//   document.querySelector("#toggleHide").style.display = "block";
-//   document.querySelector("#tool").style.display = "block";
-//   win_w -= 270;
-// }
-
-// function listenToTool() {
-//   listenToToolSliders("marginVar", "margin");
-//   listenToToolSliders("amountVar", "amount");
-//   listenToToolSliders("widthVar", "elWidth");
-//   listenToToolSliders("heightVar", "elHeight");
-//   listenToToolSliders("angleVar", "angle");
-//   listenToToolCheckboxes("showRectanglesVar", "showRectangles");
-
-//   listenToToolCheckboxes("rotateAllVar", "rotateAllRectangles");
-//   listenToToolCheckboxes("showPolygonsVar", "showPolygons");
-//   listenToToolCheckboxes("showHoleVar", "showHole");
-//   listenToToolCheckboxes("showGridVar", "showGrid");
-//   listenToToolCheckboxes("showStarVar", "showStar");
-//   listenToToolCheckboxes("showFrameVar", "showFrame");
-
-//   let toolDOM = document.querySelector("#tool");
-//   document.querySelector("#toggleHide").onclick = function () {
-//     toolDOM.style.display = tool ? "none" : "block";
-//     tool = tool ? false : true;
-//     renderSelections();
-//   };
-// }
-
-// function listenToToolSliders(id, v) {
-//   document.querySelector("#" + id + "Value").value = window[v];
-//   document.querySelector("#" + id).value = window[v];
-//   document.querySelector("#" + id).onchange = function () {
-//     console.log("slider change");
-//     let i = parseInt(this.value);
-//     document.querySelector("#" + id + "Value").value = i;
-//     window[v] = i;
-//     renderSelections();
-//   };
-// }
-
-// function listenToToolCheckboxes(id, v) {
-//   let c = document.querySelector("#" + id);
-//   c.checked = window[v] ? true : false;
-
-//   c.onchange = function () {
-//     if (this.checked) {
-//       window[v] = true;
-//     } else {
-//       window[v] = false;
-//     }
-//     renderSelections();
-//   };
-// }

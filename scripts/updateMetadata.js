@@ -9,24 +9,24 @@ async function main() {
   const returnObject = {
     ExternalMetadata: externalMetadata,
   };
-  // Get the currently deployed selections contract
-  const Selections = await ethers.getContractFactory("Selections");
+  // Get the currently deployed selection contract
+  const Selection = await ethers.getContractFactory("Selection");
 
   const network = await ethers.provider.getNetwork();
 
   // update ExternalMetadata
-  const selectionsAddress = Selections.networks[network.chainId].address;
+  const selectionAddress = Selection.networks[network.chainId].address;
 
   await copyABI("ExternalMetadata");
   const contract = returnObject.ExternalMetadata;
   await saveAddress(contract, "ExternalMetadata");
 
-  const selections = Selections.attach(selectionsAddress);
-  await selections.updateExternalMetadata(
+  const selection = Selection.attach(selectionAddress);
+  await selection.updateExternalMetadata(
     returnObject["ExternalMetadata"].address
   );
 
-  await selections.emitBatchMetadataUpdate();
+  await selection.emitBatchMetadataUpdate();
   console.log("Batch metadata update emitted");
 
   const verificationData = [

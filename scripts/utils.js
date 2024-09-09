@@ -48,7 +48,7 @@ const initContracts = async (getSigners = true) => {
     [owner] = await hre.ethers.getSigners();
   }
 
-  const contractNames = ["Selections"];
+  const contractNames = ["Selection"];
 
   let returnObject = {};
 
@@ -111,26 +111,24 @@ const deployContracts = async (options) => {
   returnObject["ExternalMetadata"] = externalMetadata;
   const externalMetadataAddress = externalMetadata.address;
 
-  // deploy Selections
-  const Selections = await hre.ethers.getContractFactory("Selections");
-  const selections = await Selections.deploy(externalMetadataAddress);
-  await selections.deployed();
-  var selectionsAddress = selections.address;
-  returnObject["Selections"] = selections;
+  // deploy Selection
+  const Selection = await hre.ethers.getContractFactory("Selection");
+  const selection = await Selection.deploy(externalMetadataAddress);
+  await selection.deployed();
+  var selectionAddress = selection.address;
+  returnObject["Selection"] = selection;
   verbose &&
     log(
-      "Selections Deployed at " +
-        String(selectionsAddress) +
+      "Selection Deployed at " +
+        String(selectionAddress) +
         " with externalMetadataAddress " +
         externalMetadataAddress
     );
 
-  // save selections in metadata
-  await externalMetadata.updateSelectionsAddress(selectionsAddress);
+  // save selection in metadata
+  await externalMetadata.updateSelectionAddress(selectionAddress);
   verbose &&
-    log(
-      "ExternalMetadata updated with Selections Address " + selectionsAddress
-    );
+    log("ExternalMetadata updated with Selection Address " + selectionAddress);
 
   // verify contract if network ID is mainnet goerli or sepolia
   if (
@@ -147,7 +145,7 @@ const deployContracts = async (options) => {
         constructorArguments: [],
       },
       {
-        name: "Selections",
+        name: "Selection",
         constructorArguments: [externalMetadataAddress],
       },
     ];
@@ -198,15 +196,15 @@ const getParsedEventLogs = (receipt, contract, eventName) => {
   return eventName ? events.filter((x) => x.name === eventName) : events;
 };
 
-const mintSelections = async (signers, deployedContracts, acct) => {
+const mintSelection = async (signers, deployedContracts, acct) => {
   const [owner] = signers;
   acct = acct || owner;
-  const { Selections: selections } = deployedContracts;
-  await selections.updatePaused(false);
-  await selections.updateStartDate(0);
-  const tx = await selections.connect(acct)["mint()"]({ value: correctPrice });
+  const { Selection: selection } = deployedContracts;
+  await selection.updatePaused(false);
+  await selection.updateStartDate(0);
+  const tx = await selection.connect(acct)["mint()"]({ value: correctPrice });
   const receipt = await tx.wait();
-  const runId = getParsedEventLogs(receipt, selections, "Transfer")[0].args
+  const runId = getParsedEventLogs(receipt, selection, "Transfer")[0].args
     .tokenId;
   return { receipt, runId };
 };
@@ -271,7 +269,7 @@ async function writedata(path, data) {
 export {
   saveAddress,
   copyABI,
-  mintSelections,
+  mintSelection,
   getParsedEventLogs,
   decodeUri,
   initContracts,

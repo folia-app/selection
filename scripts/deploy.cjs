@@ -28,7 +28,7 @@ async function main() {
     await saveAddress(contract, contractName);
   }
   if (deployedContracts.verificationData) {
-    await verifyContracts(deployedContracts, deployedContracts.Selections);
+    await verifyContracts(deployedContracts, deployedContracts.Selection);
   }
 }
 

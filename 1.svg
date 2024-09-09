@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" color="#000000" width="100%" height="100%" version="1.1">
+  <defs>
+    <pattern id="diagonalHatch" patternUnits="userSpaceOnUse" patternTransform="translate(0)" width="8" height="8">
+      <rect width="8" height="8" fill="white" />
+      <path d="M-2,2 l4,-4 M0,8 l8,-8 M6,10 l4,-4" style="stroke:black; stroke-width:3"></path>
+      <animateTransform attributeType="xml" attributeName="patternTransform" type="translate" from="0 0" to="8 8"
+        begin="0" dur="2s" repeatCount="indefinite" />
+    </pattern>
+  </defs>
+  <text vector-effect="non-scaling-stroke" x="50%" y="55%" dominant-baseline="middle" text-anchor="middle"
+    stroke="url(#diagonalHatch)" fill="none" style="font-size: 900%; font-family: 'Times New Roman';">2</text>
+  <rect vector-effect="non-scaling-stroke" x="5%" y="5%" width="90%" height="90%" fill="none"
+    stroke="url(#diagonalHatch)"></rect>
+  <name>white</name>
+  <style>
+    svg {
+      background-image: linear-gradient(45deg, #c4c4c4 25%, transparent 25%), linear-gradient(-45deg, #c4c4c4 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #c4c4c4 75%), linear-gradient(-45deg, transparent 75%, #c4c4c4 75%);
+      background-size: 8px 8px;
+      background-position: 0 0, 0 4px, 4px -4px, -4px 0px;
+    }
+
+    bgStyle {
+      1: b10e2d527612073b26eecdfd717e6a320cf44b4afac2b0732d9fcbe2b7fa0cf6
+    }
+  </style>
+</svg>

@@ -1,11 +1,11 @@
-import SelectionsABI from "../contractData/ABI-12345-Selections.json";
-import SelectionsLocal from "../contractData/12345-Selections.json";
-import SelectionsBaseSepolia from "../contractData/SelectionsBaseSepolia.json";
+import SelectionABI from "../contractData/ABI-12345-Selection.json";
+import SelectionLocal from "../contractData/12345-Selection.json";
+import SelectionBaseSepolia from "../contractData/SelectionBaseSepolia.json";
 
-export const Selections = {
-  abi: SelectionsABI,
+export const Selection = {
+  abi: SelectionABI,
   networks: {
-    12345: SelectionsLocal,
-    84532: SelectionsBaseSepolia,
+    12345: SelectionLocal,
+    84532: SelectionBaseSepolia,
   },
 };

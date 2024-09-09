@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "base64-sol/base64.sol";
 import "./StringsExtended.sol";
-import "./Selections.sol";
+import "./Selection.sol";
 import "./IFileStore.sol";
 import "hardhat/console.sol";
 
@@ -16,7 +16,7 @@ import "hardhat/console.sol";
 contract ExternalMetadata is Ownable {
     string svgOpening =
         '<?xml version="1.0" encoding="utf-8"?>'
-        '<svg xmlns="http://www.w3.org/2000/svg" color="#000000" width="100%" height="100%">'
+        '<svg xmlns="http://www.w3.org/2000/svg" color="#000000" width="100%" height="100%" viewBox="0 0 300 300">'
         "<defs>"
         '<pattern id="diagonalHatch" patternUnits="userSpaceOnUse" patternTransform="translate(0)" width="8" height="8">'
         '<rect width="8" height="8" fill="white" />'
@@ -27,10 +27,10 @@ contract ExternalMetadata is Ownable {
         'dur="2s" repeatCount="indefinite"/>'
         "</pattern>"
         "</defs>"
-        '<text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" stroke="url(#diagonalHatch)" fill="none" style="font-size: 55vh; font-family: \'Times New Roman\';">';
+        '<text vector-effect="non-scaling-stroke" x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" stroke="url(#diagonalHatch)" fill="none" style="font-size: 900%; font-family: \'Times New Roman\';">';
     string svgMiddle =
         "</text>"
-        '<rect x="5%" y="5%" width="90%" height="90%" fill="none" stroke="url(#diagonalHatch)"  vector-effect="non-scaling-stroke"></rect>';
+        '<rect vector-effect="non-scaling-stroke" x="5%" y="5%" width="90%" height="90%" fill="none" stroke="url(#diagonalHatch)"></rect>';
     string svgClosing = "</svg>";
 
     string transparentPattern =
@@ -39,20 +39,20 @@ contract ExternalMetadata is Ownable {
         "background-position: 0 0, 0 4px, 4px -4px, -4px 0px;";
 
     mapping(uint256 => uint256) backgroundStateOffsets; // tokenId => backgroundState
-    address payable public selections;
+    address payable public selection;
 
     constructor() {}
 
-    function updateSelectionsAddress(
-        address payable selections_
+    function updateSelectionAddress(
+        address payable selection_
     ) public onlyOwner {
-        selections = selections_;
+        selection = selection_;
     }
 
     function getBackgroundOffset(
         uint256 tokenId
     ) public view returns (uint256) {
-        return Selections(selections).getBackgroundOffset(tokenId);
+        return Selection(selection).getBackgroundOffset(tokenId);
     }
 
     /// @dev generates a random number between a provided range
@@ -80,7 +80,7 @@ contract ExternalMetadata is Ownable {
                             '{"name":"',
                             getName(tokenId),
                             '",',
-                            '"description": "Selections",',
+                            '"description": "Selection",',
                             '"image": "',
                             svg,
                             '",',
@@ -118,14 +118,14 @@ contract ExternalMetadata is Ownable {
                     Base64.encode(
                         abi.encodePacked(
                             htmlStart,
-                            '<script src="data:text/javascript;base64,',
-                            fileStore.getFile("gunzipScripts-0.0.1.js").read(),
-                            '"></script>',
                             "<script>window.location.hash=",
                             StringsExtended.toString(tokenId),
                             ";</script>",
                             '<script type="text/javascript+gzip" src="data:text/javascript;base64,',
-                            fileStore.getFile("index.js.gz").read(),
+                            fileStore.getFile("selection_.js.gz").read(),
+                            '"></script>',
+                            '<script src="data:text/javascript;base64,',
+                            fileStore.getFile("gunzipScripts-0.0.1.js").read(),
                             '"></script>',
                             htmlClose
                         )

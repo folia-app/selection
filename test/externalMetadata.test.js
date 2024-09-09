@@ -11,12 +11,12 @@ import prettier from "prettier";
 describe("ExternalMetadata Tests", function () {
   this.timeout(50000000);
 
-  it.skip("has the correct selections addresses", async () => {
-    const { Selections: selections, ExternalMetadata: externalMetadata } =
+  it.skip("has the correct selection addresses", async () => {
+    const { Selection: selection, ExternalMetadata: externalMetadata } =
       await deployContracts();
 
-    const selectionsAddress = await externalMetadata.selections();
-    expect(selectionsAddress).to.equal(selections.address);
+    const selectionAddress = await externalMetadata.selection();
+    expect(selectionAddress).to.equal(selection.address);
   });
 
   it.skip("onlyOwner functions are really only Owner", async function () {
@@ -24,23 +24,22 @@ describe("ExternalMetadata Tests", function () {
     const { ExternalMetadata: externalMetadata } = await deployContracts();
 
     await expect(
-      externalMetadata.connect(addr1).updateSelectionsAddress(addr1.address)
+      externalMetadata.connect(addr1).updateSelectionAddress(addr1.address)
     ).to.be.revertedWith("Ownable: caller is not the owner");
-    await expect(externalMetadata.updateSelectionsAddress(addr1.address)).to.not
+    await expect(externalMetadata.updateSelectionAddress(addr1.address)).to.not
       .be.reverted;
   });
 
   it("has valid json", async function () {
-    const { ExternalMetadata, Selections: selections } =
-      await deployContracts();
+    const { ExternalMetadata, Selection: selection } = await deployContracts();
 
-    const price = await selections.priceToMint();
-    const tx = await selections.mint({ value: price });
+    const price = await selection.priceToMint();
+    const tx = await selection.mint({ value: price });
     const receipt = await tx.wait();
-    const events = getParsedEventLogs(receipt, selections, "Transfer");
+    const events = getParsedEventLogs(receipt, selection, "Transfer");
     const tokenId = events[0].args.tokenId;
 
-    const base64Json = await selections.tokenURI(tokenId);
+    const base64Json = await selection.tokenURI(tokenId);
 
     const utf8Json = Buffer.from(
       base64Json.replace("data:application/json;base64,", ""),

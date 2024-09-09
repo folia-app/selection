@@ -8,16 +8,17 @@ import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "./ExternalMetadata.sol";
 
-contract Selections is Ownable, ERC2981, ERC721 {
+contract Selection is Ownable, ERC2981, ERC721 {
     bool public paused = false;
     uint256 totalSupply = 0;
-    uint256 public priceToMint = 0.0025 ether;
+    uint256 public priceToMint = 0.11 ether;
+    uint256 public startingDate = 1726164000; // Thu Sep 12 2024 18:00:00 GMT+0000
     address payable public proceedRecipient;
     address public externalMetadata;
 
     mapping(uint256 => uint256) public backgroundOffsets;
 
-    constructor(address externalMetadata_) ERC721("Selections", "SEL") {
+    constructor(address externalMetadata_) ERC721("Selection", "SEL") {
         updateExternalMetadata(externalMetadata_);
         updateProceedRecipient(payable(msg.sender));
     }
@@ -39,16 +40,11 @@ contract Selections is Ownable, ERC2981, ERC721 {
         uint256 amount
     );
 
-    function makePayment(uint256 payment) internal {
-        require(msg.value >= payment, "Incorrect payment");
-        require(proceedRecipient != address(0), "Invalid recipient");
-        (bool sent, bytes memory data) = proceedRecipient.call{value: payment}(
-            ""
-        );
-        emit EthMoved(proceedRecipient, sent, data, payment);
-    }
+    // public write functions
 
     function mint() public payable {
+        require(block.timestamp >= startingDate, "not yet started");
+        require(!paused, "paused");
         totalSupply += 1;
         _mint(msg.sender, totalSupply);
         require(msg.value == priceToMint, "Incorrect payment");
@@ -59,11 +55,13 @@ contract Selections is Ownable, ERC2981, ERC721 {
         emit EthMoved(proceedRecipient, sent, data, priceToMint);
     }
 
-    function changeBackground(uint256 tokenId) public {
+    function changeBackground(uint256 tokenId, uint256 offset) public {
         require(_isApprovedOrOwner(_msgSender(), tokenId), "Not approved");
-        backgroundOffsets[tokenId]++;
+        backgroundOffsets[tokenId] = offset;
         emit MetadataUpdate(tokenId);
     }
+
+    // public read functions
 
     function getBackgroundOffset(
         uint256 tokenId
@@ -85,6 +83,8 @@ contract Selections is Ownable, ERC2981, ERC721 {
     function tokenURI(uint256 id) public view override returns (string memory) {
         return ExternalMetadata(externalMetadata).getMetadata(id);
     }
+
+    // public owner functions
 
     function updateExternalMetadata(
         address externalMetadata_
@@ -111,7 +111,22 @@ contract Selections is Ownable, ERC2981, ERC721 {
         proceedRecipient = proceedRecipient_;
     }
 
+    function updateStartingDate(uint256 startingDate_) public onlyOwner {
+        startingDate = startingDate_;
+    }
+
     function updatePaused(bool paused_) public onlyOwner {
         paused = paused_;
+    }
+
+    // internal functions
+
+    function makePayment(uint256 payment) internal {
+        require(msg.value == payment, "Incorrect payment");
+        require(proceedRecipient != address(0), "Invalid recipient");
+        (bool sent, bytes memory data) = proceedRecipient.call{value: payment}(
+            ""
+        );
+        emit EthMoved(proceedRecipient, sent, data, payment);
     }
 }
