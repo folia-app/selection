@@ -4,6 +4,9 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "base64-sol/base64.sol";
 import "./StringsExtended.sol";
+import "./Selections.sol";
+import "./IFileStore.sol";
+import "hardhat/console.sol";
 
 /// @title ExternalMetadata
 /// @notice
@@ -11,7 +14,58 @@ import "./StringsExtended.sol";
 /// @dev The updateable and replaceable contract
 
 contract ExternalMetadata is Ownable {
+    string svgOpening =
+        '<?xml version="1.0" encoding="utf-8"?>'
+        '<svg xmlns="http://www.w3.org/2000/svg" color="#000000" width="100%" height="100%">'
+        "<defs>"
+        '<pattern id="diagonalHatch" patternUnits="userSpaceOnUse" patternTransform="translate(0)" width="8" height="8">'
+        '<rect width="8" height="8" fill="white" />'
+        '<path d="M-2,2 l4,-4 M0,8 l8,-8 M6,10 l4,-4" style="stroke:black; stroke-width:3"></path>'
+        '<animateTransform attributeType="xml" '
+        'attributeName="patternTransform" '
+        'type="translate" from="0 0" to="8 8" begin="0" '
+        'dur="2s" repeatCount="indefinite"/>'
+        "</pattern>"
+        "</defs>"
+        '<text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" stroke="url(#diagonalHatch)" fill="none" style="font-size: 55vh; font-family: \'Times New Roman\';">';
+    string svgMiddle =
+        "</text>"
+        '<rect x="5%" y="5%" width="90%" height="90%" fill="none" stroke="url(#diagonalHatch)"  vector-effect="non-scaling-stroke"></rect>';
+    string svgClosing = "</svg>";
+
+    string transparentPattern =
+        "background-image: linear-gradient(45deg, #c4c4c4 25%, transparent 25%), linear-gradient(-45deg, #c4c4c4 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #c4c4c4 75%), linear-gradient(-45deg, transparent 75%, #c4c4c4 75%);"
+        "background-size: 8px 8px;"
+        "background-position: 0 0, 0 4px, 4px -4px, -4px 0px;";
+
+    mapping(uint256 => uint256) backgroundStateOffsets; // tokenId => backgroundState
+    address payable public selections;
+
     constructor() {}
+
+    function updateSelectionsAddress(
+        address payable selections_
+    ) public onlyOwner {
+        selections = selections_;
+    }
+
+    function getBackgroundOffset(
+        uint256 tokenId
+    ) public view returns (uint256) {
+        return Selections(selections).getBackgroundOffset(tokenId);
+    }
+
+    /// @dev generates a random number between a provided range
+    /// @param min the minimum value
+    /// @param max the maximum value
+    /// @param seed the seed
+    function randomRange(
+        uint256 min,
+        uint256 max,
+        bytes32 seed
+    ) internal pure returns (uint256) {
+        return (uint256(seed) % (max - min + 1)) + min;
+    }
 
     /// @dev generates the
     /// @param tokenId the tokenId
@@ -35,8 +89,8 @@ contract ExternalMetadata is Ownable {
                             '",',
                             '"home_url": "https://google.com",',
                             '"external_url": "https://google.com",',
-                            '"animation_url": "https://nft.google.com/#',
-                            StringsExtended.toString(tokenId),
+                            '"animation_url":"',
+                            getHTML(tokenId),
                             '",',
                             '"attributes": ',
                             getAttributes(tokenId),
@@ -47,90 +101,296 @@ contract ExternalMetadata is Ownable {
             );
     }
 
-    function getName(uint256 tokenId) public pure returns (string memory) {
-        return string(abi.encodePacked(StringsExtended.toString(tokenId)));
-    }
+    string htmlStart =
+        '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Selection, 2024 - Jan Robert Leegte</title><style>html,body{width:100vw;height:100vh}body{overflow:hidden}svg{width:100vw;height:100vh;position:absolute;inset:0}</style><meta http-equiv="X-UA-Compatible" content="IE=9">';
+
+    string htmlClose =
+        '</head><body> <svg color="#000" style="background-color:#0000"><defs><pattern id="diagonalHatch" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#fff"/><path d="m-2 2 4-4M0 8l8-8M6 10l4-4" style="stroke:#000;stroke-width:3px"/><animateTransform type="translate" from="0 0" to="8 8" begin="0" dur="2s" attributeType="xml" attributeName="patternTransform" repeatCount="indefinite"/></pattern></defs><path id="selectionPath" d="" stroke="url(#diagonalHatch)" fill="none"/></svg> </body></html>';
 
     function getHTML(uint256 tokenId) public view returns (string memory) {
+        IFileStore fileStore = IFileStore(
+            0xFe1411d6864592549AdE050215482e4385dFa0FB // baseSepolia
+        );
         return
             string(
                 abi.encodePacked(
                     "data:text/html;base64,",
                     Base64.encode(
                         abi.encodePacked(
-                            "<html><body><img src='",
-                            getSVG(tokenId),
-                            "'></body></html>"
+                            htmlStart,
+                            '<script src="data:text/javascript;base64,',
+                            fileStore.getFile("gunzipScripts-0.0.1.js").read(),
+                            '"></script>',
+                            "<script>window.location.hash=",
+                            StringsExtended.toString(tokenId),
+                            ";</script>",
+                            '<script type="text/javascript+gzip" src="data:text/javascript;base64,',
+                            fileStore.getFile("index.js.gz").read(),
+                            '"></script>',
+                            htmlClose
                         )
                     )
                 )
             );
     }
 
+    function getName(uint256 tokenId) public pure returns (string memory) {
+        return string(abi.encodePacked(StringsExtended.toString(tokenId)));
+    }
+
     /// @dev function to generate a SVG String
     function getSVG(uint256 tokenId) public view returns (string memory) {
+        bytes32 originalSeed = keccak256(abi.encodePacked(tokenId));
+        string[3] memory solidsArray = [
+            "rgb(123,50,50)",
+            "rgb(50,123,50)",
+            "rgb(50,50,123)"
+        ];
+        uint256 solidColor = randomRange(0, 2, originalSeed);
+        console.log("solidColor");
+        console.log(solidColor);
+        string memory solidColorString = string(
+            abi.encodePacked("background-color:", solidsArray[solidColor])
+        );
+        bytes32 seed = keccak256(abi.encodePacked(originalSeed));
+        console.log("seed_after_one_hash");
+        console.logBytes32(seed);
+        bool solidOverGrad = randomRange(0, 1, seed) == 0 ? true : false;
+        console.log("solidOverGrad");
+        console.log(solidOverGrad);
+        seed = keccak256(abi.encodePacked(seed));
+        bool grayOverColor = randomRange(0, 5, seed) == 0 ? true : false;
+        seed = keccak256(abi.encodePacked(seed));
+        uint256 bgStyleRand = randomRange(1, 10, seed);
+        console.log("bgstylerand seed");
+        console.logBytes32(seed);
+        console.log("bgStyleRand");
+        console.log(bgStyleRand);
+        uint256 backgroundOffset = getBackgroundOffset(tokenId);
+        uint256 totalStyles = 4;
+
+        // 0: color
+        // 1: white
+        // 2: black
+        // 3: transparent
+        uint256 bgStyle = ((
+            bgStyleRand <= 7
+                ? 0
+                : (bgStyleRand <= 8 ? 1 : (bgStyleRand <= 9 ? 2 : 3))
+        ) + backgroundOffset) % totalStyles;
+        string memory finalColor;
+        string memory name;
+        if (bgStyle == 0) {
+            if (solidOverGrad) {
+                name = StringsExtended.toString(solidColor);
+                finalColor = solidColorString;
+            } else if (grayOverColor) {
+                name = "gray";
+                seed = keccak256(abi.encodePacked(seed));
+                uint256 gradAngle = randomRange(0, 90, seed);
+                seed = keccak256(abi.encodePacked(seed));
+                uint256 gray1Val = randomRange(0, 150, seed);
+                string memory gray1 = string(
+                    abi.encodePacked(
+                        "rgb(",
+                        StringsExtended.toString(gray1Val),
+                        ",",
+                        StringsExtended.toString(gray1Val),
+                        ",",
+                        StringsExtended.toString(gray1Val),
+                        ")"
+                    )
+                );
+                seed = keccak256(abi.encodePacked(seed));
+                uint256 gray2Val = randomRange(0, 150, seed);
+                string memory gray2 = string(
+                    abi.encodePacked(
+                        "rgb(",
+                        StringsExtended.toString(gray2Val),
+                        ",",
+                        StringsExtended.toString(gray2Val),
+                        ",",
+                        StringsExtended.toString(gray2Val),
+                        ")"
+                    )
+                );
+                finalColor = string(
+                    abi.encodePacked(
+                        "background: linear-gradient(",
+                        StringsExtended.toString(gradAngle),
+                        "deg, ",
+                        gray1,
+                        " 0%, ",
+                        gray2,
+                        " 100%);"
+                    )
+                );
+            } else {
+                name = "color";
+                seed = keccak256(abi.encodePacked(seed));
+                uint256 gradAngle = randomRange(0, 90, seed);
+
+                seed = keccak256(abi.encodePacked(seed));
+                uint256 dark = randomRange(100, 150, seed);
+
+                console.log("dark");
+                console.log(dark);
+                seed = keccak256(abi.encodePacked(seed));
+
+                uint256 color1R = randomRange(50, dark, seed);
+                seed = keccak256(abi.encodePacked(seed));
+                uint256 color1G = randomRange(50, dark, seed);
+                seed = keccak256(abi.encodePacked(seed));
+                uint256 color1B = randomRange(50, dark, seed);
+
+                string memory color1 = string(
+                    abi.encodePacked(
+                        "rgb(",
+                        StringsExtended.toString(color1R),
+                        ",",
+                        StringsExtended.toString(color1G),
+                        ",",
+                        StringsExtended.toString(color1B),
+                        ")"
+                    )
+                );
+
+                seed = keccak256(abi.encodePacked(seed));
+                bool addOrSubtract = randomRange(0, 1, seed) == 0
+                    ? true
+                    : false;
+                seed = keccak256(abi.encodePacked(seed));
+                uint256 colorOffset = randomRange(0, 100, seed);
+
+                if (addOrSubtract) {
+                    color1R = color1R + colorOffset;
+                    color1R = color1R > 255 ? 255 : color1R;
+                    color1G = color1G + colorOffset;
+                    color1G = color1G > 255 ? 255 : color1G;
+                    color1B = color1B + colorOffset;
+                    color1B = color1B > 255 ? 255 : color1B;
+                } else {
+                    color1R = colorOffset > color1R ? 0 : color1R - colorOffset;
+                    color1G = colorOffset > color1G ? 0 : color1G - colorOffset;
+                    color1B = colorOffset > color1B ? 0 : color1B - colorOffset;
+                }
+
+                string memory color2 = string(
+                    abi.encodePacked(
+                        "rgb(",
+                        StringsExtended.toString(color1R),
+                        ",",
+                        StringsExtended.toString(color1G),
+                        ",",
+                        StringsExtended.toString(color1B),
+                        ")"
+                    )
+                );
+                finalColor = string(
+                    abi.encodePacked(
+                        "background: linear-gradient(",
+                        StringsExtended.toString(gradAngle),
+                        "deg, ",
+                        color1,
+                        " 0%, ",
+                        color2,
+                        " 100%);"
+                    )
+                );
+            }
+        } else if (bgStyle == 1) {
+            name = "white";
+            finalColor = "background-color: white;";
+        } else if (bgStyle == 2) {
+            name = "black";
+            finalColor = "background-color: black;";
+        } else {
+            name = "transparent";
+            finalColor = transparentPattern;
+        }
+
+        string memory cssStart = "<style>"
+        "svg {";
+
+        string memory cssEnd = string(
+            abi.encodePacked(
+                "}",
+                "bgStyle {",
+                StringsExtended.toString(bgStyle),
+                ":",
+                StringsExtended.toHexString(uint256(originalSeed)),
+                "}",
+                "</style>"
+            )
+        );
         return
             string(
                 abi.encodePacked(
                     "data:image/svg+xml;base64,",
                     Base64.encode(
                         abi.encodePacked(
-                            '<?xml version="1.0" encoding="utf-8"?>',
-                            '<svg xmlns="http://www.w3.org/2000/svg"  height="100%" width="100%" viewBox="0 0 1000 1000" style="background-color:transparent;">',
-                            getPath(tokenId),
-                            "</svg>"
+                            svgOpening,
+                            StringsExtended.toString(tokenId),
+                            svgMiddle,
+                            "<name>",
+                            name,
+                            "</name>",
+                            cssStart,
+                            finalColor,
+                            cssEnd,
+                            svgClosing
                         )
                     )
                 )
             );
     }
 
-    function getPath(uint256 tokenId) internal view returns (string memory) {
-        string memory path = string(
-            abi.encodePacked(
-                "<style>",
-                "#id ",
-                "{ ",
-                "}",
-                "</style>"
-                '<g id="id">',
-                getMorePath(tokenId),
-                "</g>"
-            )
-        );
-        return path;
-    }
+    // '<!-- importing and applying randomly generated color data from smart contract -->',
 
-    function getMorePath(
-        uint256 tokenId
-    ) internal view returns (string memory) {
-        bytes32 rand = keccak256(abi.encodePacked(tokenId));
-        uint256 attr1 = randomRange(0, 100, rand);
+    // '<script type="text/javascript" src="data-from-contract.js"></script>',
+    // '<script type="text/javascript">',
 
-        string memory path = string(abi.encodePacked("<path/>"));
+    //   'window.onload = function()',
+    //   '{',
+    //     'let bg = document.body.style;',
 
-        return path;
-    }
+    //     'let randNumber = R.int(1,150);',
+    //     'document.querySelector(\'text\').innerHTML = randNumber;',
+
+    //     'toggleBg(bg);',
+
+    //     'function toggleBg(bg)',
+    //     '{',
+    //       'if (bgState == 0 || bgState == 1)',
+    //       '{',
+    //         'bg.background = solidOverGrad ? solidColor : grayOverColor ? `linear-gradient(${gradAngle}deg, ${gray1} 0%, ${gray2} 100%)` : `linear-gradient(${gradAngle}deg, ${color1} 0%, ${color2} 100%)`;',
+
+    //       '}',
+    //       'else if (bgState == 2) { bg.background = \'white\'; }',
+    //       'else if (bgState == 3) { bg.background = \'black\'; }',
+    //       'else if (bgState == 4)',
+    //       '{',
+    //         'bg.background = \'url("blank.png") repeat\';',
+    //         'bg.backgroundSize = \'8px\';',
+    //       '}',
+    //       'if (bgState == 4) { bgState = 0 } else { bgState++ };',
+    //     '}',
+    //   '}',
+    // '</script>',
 
     /// @dev generates the attributes as JSON String
     function getAttributes(
         uint256 tokenId
-    ) public view returns (string memory) {
+    ) public pure returns (string memory) {
         return
             string(
                 abi.encodePacked(
                     "[",
-                    '{"trait_type":"asdf","value":"asdf"}',
-                    '"]'
+                    '{"trait_type":"tokenId","value":"',
+                    StringsExtended.toString(tokenId),
+                    '"}',
+                    "]"
                 )
             );
-    }
-
-    function randomRange(
-        uint256 min,
-        uint256 max,
-        bytes32 seed
-    ) internal view returns (uint256) {
-        return randomRange(min, max, seed);
     }
 }

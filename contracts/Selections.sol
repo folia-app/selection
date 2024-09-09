@@ -15,6 +15,8 @@ contract Selections is Ownable, ERC2981, ERC721 {
     address payable public proceedRecipient;
     address public externalMetadata;
 
+    mapping(uint256 => uint256) public backgroundOffsets;
+
     constructor(address externalMetadata_) ERC721("Selections", "SEL") {
         updateExternalMetadata(externalMetadata_);
         updateProceedRecipient(payable(msg.sender));
@@ -27,6 +29,8 @@ contract Selections is Ownable, ERC2981, ERC721 {
     fallback() external {
         revert("no fallback thank you");
     }
+
+    event MetadataUpdate(uint256 _tokenId);
 
     event EthMoved(
         address indexed to,
@@ -47,12 +51,24 @@ contract Selections is Ownable, ERC2981, ERC721 {
     function mint() public payable {
         totalSupply += 1;
         _mint(msg.sender, totalSupply);
-        require(msg.value >= priceToMint, "Incorrect payment");
+        require(msg.value == priceToMint, "Incorrect payment");
         require(proceedRecipient != address(0), "Invalid recipient");
         (bool sent, bytes memory data) = proceedRecipient.call{
             value: priceToMint
         }("");
         emit EthMoved(proceedRecipient, sent, data, priceToMint);
+    }
+
+    function changeBackground(uint256 tokenId) public {
+        require(_isApprovedOrOwner(_msgSender(), tokenId), "Not approved");
+        backgroundOffsets[tokenId]++;
+        emit MetadataUpdate(tokenId);
+    }
+
+    function getBackgroundOffset(
+        uint256 tokenId
+    ) public view returns (uint256) {
+        return backgroundOffsets[tokenId];
     }
 
     function supportsInterface(
@@ -69,23 +85,6 @@ contract Selections is Ownable, ERC2981, ERC721 {
     function tokenURI(uint256 id) public view override returns (string memory) {
         return ExternalMetadata(externalMetadata).getMetadata(id);
     }
-
-    // function emitBatchMetadataUpdate() public onlyOwner {
-    //     bytes32 topic = keccak256("BatchMetadataUpdate(uint256,uint256)");
-    //     uint256 totalSupply = 0; //__totalSupply();
-    //     bytes memory data = abi.encode(0, totalSupply);
-    //     bytes32[] memory topics = new bytes32[](1);
-    //     topics[0] = topic;
-    //     // emitGenericEvent(topics, data);
-    // }
-
-    // function emitMetadataUpdate(uint256 tokenId) internal {
-    //     bytes32 topic = keccak256("MetadataUpdate(uint256)");
-    //     bytes memory data = abi.encode(tokenId);
-    //     bytes32[] memory topics = new bytes32[](1);
-    //     topics[0] = topic;
-    //     // emitGenericEvent(topics, data);
-    // }
 
     function updateExternalMetadata(
         address externalMetadata_

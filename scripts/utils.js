@@ -125,6 +125,13 @@ const deployContracts = async (options) => {
         externalMetadataAddress
     );
 
+  // save selections in metadata
+  await externalMetadata.updateSelectionsAddress(selectionsAddress);
+  verbose &&
+    log(
+      "ExternalMetadata updated with Selections Address " + selectionsAddress
+    );
+
   // verify contract if network ID is mainnet goerli or sepolia
   if (
     networkinfo["chainId"] == 5 ||
