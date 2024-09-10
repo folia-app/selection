@@ -32,9 +32,9 @@ async function main() {
   await Selection.updateExternalMetadata(
     returnObject["ExternalMetadata"].address
   );
-  // const totalSupply = await selection.totalSupply();
-  // await selection.emitBatchMetadataUpdate(1, totalSupply);
-  // console.log("Batch metadata update emitted");
+  const totalSupply = await Selection.totalSupply();
+  await Selection.emitBatchMetadataUpdate(1, totalSupply);
+  console.log("Batch metadata update emitted");
 
   const verificationData = [
     {

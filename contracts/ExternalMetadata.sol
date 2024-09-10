@@ -81,11 +81,13 @@ contract ExternalMetadata is Ownable {
                     "data:application/json;base64,",
                     Base64.encode(
                         abi.encodePacked(
-                            '{"name":"',
+                            '{"name":"Selection No. ',
                             getName(tokenId),
                             '",',
-                            '"description": "Selection",',
-                            '"image": "',
+                            '"description": "In Selection, the focus of the work is focus itself.\n\n'
+                            "The project is a fully on-chain generated collection of selection areas, the familiar marching ants conceived by Bill Atkinson which have become such a ubiquitous part of interface culture.\n"
+                            "Selection is released in partnership with Folia.",
+                            '","image": "',
                             svg,
                             '",',
                             '"image_url": "',

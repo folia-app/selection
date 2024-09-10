@@ -10,7 +10,7 @@ import "./ExternalMetadata.sol";
 
 contract Selection is Ownable, ERC2981, ERC721 {
     bool public paused = false;
-    uint256 totalSupply = 0;
+    uint256 public totalSupply = 0;
     uint256 public constant MAX_SUPPLY = 150;
     uint256 public priceToMint = 0.11 ether;
     uint256 public startingDate = 1726164000; // Thu Sep 12 2024 18:00:00 GMT+0000
