@@ -38,7 +38,7 @@ contract ExternalMetadata is Ownable {
         "background-position: 0 0, 0 4px, 4px -4px, -4px 0px;";
 
     address payable public selection;
-    string public filename = "selection_14_58.js.gz";
+    string public filename = "selection_15_35.js.gz";
 
     constructor() {}
 
@@ -52,10 +52,10 @@ contract ExternalMetadata is Ownable {
         filename = filename_;
     }
 
-    function getBackgroundOffset(
+    function getBackgroundOverride(
         uint256 tokenId
-    ) public view returns (uint256) {
-        return Selection(selection).getBackgroundOffset(tokenId);
+    ) public view returns (bool, uint256) {
+        return Selection(selection).getBackgroundOverride(tokenId);
     }
 
     /// @dev generates a random number between a provided range
@@ -74,6 +74,7 @@ contract ExternalMetadata is Ownable {
     /// @param tokenId the tokenId
     function getMetadata(uint256 tokenId) public view returns (string memory) {
         string memory svg = getSVG(tokenId);
+
         return
             string(
                 abi.encodePacked(
@@ -114,6 +115,10 @@ contract ExternalMetadata is Ownable {
         IFileStore fileStore = IFileStore(
             0xFe1411d6864592549AdE050215482e4385dFa0FB // baseSepolia
         );
+        (
+            bool backgroundOverriden,
+            uint256 backgroundOverride
+        ) = getBackgroundOverride(tokenId);
         return
             string(
                 abi.encodePacked(
@@ -123,10 +128,10 @@ contract ExternalMetadata is Ownable {
                             htmlStart,
                             "<script>window.location.hash=",
                             StringsExtended.toString(tokenId),
-                            ";window.backgroundOffset=",
-                            StringsExtended.toString(
-                                getBackgroundOffset(tokenId)
-                            ),
+                            ";window.backgroundOverride=",
+                            backgroundOverriden
+                                ? StringsExtended.toString(backgroundOverride)
+                                : "false",
                             ";</script>",
                             '<script type="text/javascript+gzip" src="data:text/javascript;base64,',
                             fileStore.getFile(filename).read(),
@@ -163,18 +168,19 @@ contract ExternalMetadata is Ownable {
         bool grayOverColor = randomRange(0, 5, seed) == 0 ? true : false;
         seed = keccak256(abi.encodePacked(seed));
         uint256 bgStyleRand = randomRange(1, 10, seed);
-        uint256 backgroundOffset = getBackgroundOffset(tokenId);
+        (
+            bool backroundOverridden,
+            uint256 backgroundOverride
+        ) = getBackgroundOverride(tokenId);
         uint256 totalStyles = 4;
 
         // 0: color
         // 1: white
         // 2: black
         // 3: transparent
-        uint256 bgStyle = ((
-            bgStyleRand <= 7
-                ? 0
-                : (bgStyleRand <= 8 ? 1 : (bgStyleRand <= 9 ? 2 : 3))
-        ) + backgroundOffset) % totalStyles;
+        uint256 bgStyle = bgStyleRand <= 7
+            ? 0
+            : (bgStyleRand <= 8 ? 1 : (bgStyleRand <= 9 ? 2 : 3));
         string memory finalColor;
         string memory name;
         if (bgStyle == 0) {
@@ -372,27 +378,27 @@ contract ExternalMetadata is Ownable {
             string(
                 abi.encodePacked(
                     "[",
-                    '{"trait_type":"showRectangles","value":',
+                    '{"trait_type":"showRectangles","value":"',
                     (showRectangles ? "true" : "false"),
-                    "},",
-                    '{"trait_type":"showPolygons","value":',
+                    '"},',
+                    '{"trait_type":"showPolygons","value":"',
                     (showPolygons ? "true" : "false"),
-                    "},",
-                    '{"trait_type":"showHole","value":',
+                    '"},',
+                    '{"trait_type":"showHole","value":"',
                     (showHole ? "true" : "false"),
-                    "},",
-                    '{"trait_type":"showGrid","value":',
+                    '"},',
+                    '{"trait_type":"showGrid","value":"',
                     (showGrid ? "true" : "false"),
-                    "},",
-                    '{"trait_type":"showStar","value":',
+                    '"},',
+                    '{"trait_type":"showStar","value":"',
                     (showStar ? "true" : "false"),
-                    "},",
-                    '{"trait_type":"showFrame","value":',
+                    '"},',
+                    '{"trait_type":"showFrame","value":"',
                     (showFrame ? "true" : "false"),
-                    "},",
-                    '{"trait_type":"rotateAllRectangles","value":',
+                    '"},',
+                    '{"trait_type":"rotateAllRectangles","value":"',
                     (rotateAllRectangles ? "true" : "false"),
-                    "}",
+                    '"}',
                     "]"
                 )
             );

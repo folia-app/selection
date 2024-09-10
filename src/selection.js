@@ -12,7 +12,11 @@ function randomRange(min, max, seed) {
 
 const urlInfo = window.location.hash.substr(1).split("-");
 let tokenId = parseInt(urlInfo[0]);
-let backgroundOffset = window.backgroundOffset || 0;
+let backgroundOffset = 0;
+let backgroundOverride =
+  window.backgroundOverride || urlInfo.length > 1
+    ? parseInt(urlInfo[1])
+    : false;
 if (!tokenId) {
   tokenId = Math.floor(Math.random() * 150) + 1;
   // if (!tokenId) {

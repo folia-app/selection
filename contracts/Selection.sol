@@ -17,7 +17,8 @@ contract Selection is Ownable, ERC2981, ERC721 {
     address payable public proceedRecipient;
     address public externalMetadata;
 
-    mapping(uint256 => uint256) public backgroundOffsets;
+    mapping(uint256 => uint256) public backgroundOverride;
+    mapping(uint256 => bool) public backgroundOverriden;
 
     constructor(address externalMetadata_) ERC721("Selection", "SEL") {
         updateExternalMetadata(externalMetadata_);
@@ -42,7 +43,7 @@ contract Selection is Ownable, ERC2981, ERC721 {
         uint256 amount
     );
 
-    event BackgroundUpdated(uint256 indexed tokenId, uint256 offset);
+    event BackgroundUpdated(uint256 indexed tokenId, uint256 override_);
 
     // public write functions
 
@@ -67,19 +68,20 @@ contract Selection is Ownable, ERC2981, ERC721 {
         makePayment(priceToMint);
     }
 
-    function changeBackground(uint256 tokenId, uint256 offset) public {
+    function changeBackground(uint256 tokenId, uint256 override_) public {
         require(_isApprovedOrOwner(_msgSender(), tokenId), "Not approved");
-        backgroundOffsets[tokenId] = offset;
-        emit BackgroundUpdated(tokenId, offset);
+        backgroundOverride[tokenId] = override_;
+        backgroundOverriden[tokenId] = true;
+        emit BackgroundUpdated(tokenId, override_);
         emit MetadataUpdate(tokenId);
     }
 
     // public read functions
 
-    function getBackgroundOffset(
+    function getBackgroundOverride(
         uint256 tokenId
-    ) public view returns (uint256) {
-        return backgroundOffsets[tokenId];
+    ) public view returns (bool, uint256) {
+        return (backgroundOverriden[tokenId], backgroundOverride[tokenId]);
     }
 
     function supportsInterface(

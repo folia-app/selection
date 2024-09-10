@@ -32,15 +32,17 @@ describe("ExternalMetadata Tests", function () {
 
   it("has valid json", async function () {
     const { ExternalMetadata, Selection: selection } = await deployContracts();
+    await selection.updateStartingDate(0);
 
     const price = await selection.priceToMint();
-    const tx = await selection.mint({ value: price });
+    const tx = await selection["mint()"]({ value: price });
     const receipt = await tx.wait();
     const events = getParsedEventLogs(receipt, selection, "Transfer");
     const tokenId = events[0].args.tokenId;
+    console.log({ tokenId });
 
     const base64Json = await selection.tokenURI(tokenId);
-
+    console.log({ base64Json });
     const utf8Json = Buffer.from(
       base64Json.replace("data:application/json;base64,", ""),
       "base64"
