@@ -34,7 +34,7 @@ contract ExternalMetadata is Ownable {
     string svgClosing = "</svg>";
 
     string transparentPattern =
-        "background-image: linear-gradient(45deg, #c4c4c4 25%, transparent 25%), linear-gradient(-45deg, #c4c4c4 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #c4c4c4 75%), linear-gradient(-45deg, transparent 75%, #c4c4c4 75%);"
+        "background-image: linear-gradient(45deg, #cbcccb 25%, transparent 25%), linear-gradient(-45deg, #cbcccb 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #cbcccb 75%), linear-gradient(-45deg, transparent 75%, #cbcccb 75%);"
         "background-size: 8px 8px;"
         "background-position: 0 0, 0 4px, 4px -4px, -4px 0px;";
 

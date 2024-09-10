@@ -6,19 +6,24 @@
     "iframe": {
       "source": "src/index.html",
       "optimize": true
+    },
+    "onchain": {
+      "source": "src/selection.js",
+      "optimize": true
     }
   },
   "source": "src/index.js",
-  "iframe": "bundled/index.html",
+  "iframe": "docs/index.html",
+  "onchain": "docs/selection.js",
   "scripts": {
     "prepare": "husky",
-    "build": "rm -rf .parcel-cache && rm -rf bundled && yarn parcel build",
-    "dev": "rm -rf .parcel-cache && rm -rf bundled && yarn parcel watch src/index.js",
+    "build": "rm -rf .parcel-cache && rm -rf docs && yarn parcel build",
+    "dev": "rm -rf .parcel-cache && rm -rf docs && yarn parcel watch src/index.js",
     "serve": "rm -rf .parcel-cache && yarn parcel src/index.html --open",
     "chain": "hardhat node",
     "deploy": "hardhat run scripts/deploy.cjs",
     "test": "hardhat test",
-    "precommit": "echo 'husky is working : )' && lint-staged && yarn build && git add bundled"
+    "precommit": "echo 'husky is working : )' && lint-staged && yarn build && git add docs"
   },
   "lint-staged": {
     "*.{js,jsx}": [
@@ -59,7 +64,7 @@
       "/docs/index.js",
       "**/*.min.js",
       "**/*.worker.js",
-      "/bundled/*"
+      "/docs/*"
     ],
     "root": true
   },
