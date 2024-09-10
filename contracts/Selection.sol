@@ -11,6 +11,7 @@ import "./ExternalMetadata.sol";
 contract Selection is Ownable, ERC2981, ERC721 {
     bool public paused = false;
     uint256 totalSupply = 0;
+    uint256 public constant MAX_SUPPLY = 150;
     uint256 public priceToMint = 0.11 ether;
     uint256 public startingDate = 1726164000; // Thu Sep 12 2024 18:00:00 GMT+0000
     address payable public proceedRecipient;
@@ -32,6 +33,7 @@ contract Selection is Ownable, ERC2981, ERC721 {
     }
 
     event MetadataUpdate(uint256 _tokenId);
+    event BatchMetadataUpdate(uint256 _fromTokenId, uint256 _toTokenId);
 
     event EthMoved(
         address indexed to,
@@ -40,24 +42,35 @@ contract Selection is Ownable, ERC2981, ERC721 {
         uint256 amount
     );
 
+    event BackgroundUpdated(uint256 indexed tokenId, uint256 offset);
+
     // public write functions
 
+    function mint(uint256 total) public payable {
+        require(total <= 5, "Max 5 per transaction");
+        require(totalSupply + total <= MAX_SUPPLY, "Max supply reached");
+        require(block.timestamp >= startingDate, "not yet started");
+        require(!paused, "paused");
+        for (uint256 i = 0; i < total; i++) {
+            totalSupply += 1;
+            _mint(msg.sender, totalSupply);
+        }
+        makePayment(priceToMint * total);
+    }
+
     function mint() public payable {
+        require(totalSupply + 1 <= MAX_SUPPLY, "Max supply reached");
         require(block.timestamp >= startingDate, "not yet started");
         require(!paused, "paused");
         totalSupply += 1;
         _mint(msg.sender, totalSupply);
-        require(msg.value == priceToMint, "Incorrect payment");
-        require(proceedRecipient != address(0), "Invalid recipient");
-        (bool sent, bytes memory data) = proceedRecipient.call{
-            value: priceToMint
-        }("");
-        emit EthMoved(proceedRecipient, sent, data, priceToMint);
+        makePayment(priceToMint);
     }
 
     function changeBackground(uint256 tokenId, uint256 offset) public {
         require(_isApprovedOrOwner(_msgSender(), tokenId), "Not approved");
         backgroundOffsets[tokenId] = offset;
+        emit BackgroundUpdated(tokenId, offset);
         emit MetadataUpdate(tokenId);
     }
 
@@ -85,6 +98,21 @@ contract Selection is Ownable, ERC2981, ERC721 {
     }
 
     // public owner functions
+
+    function adminMint(address recipient, uint256 total) public onlyOwner {
+        require(totalSupply + total <= MAX_SUPPLY, "Max supply reached");
+        for (uint256 i = 0; i < total; i++) {
+            totalSupply += 1;
+            _mint(recipient, totalSupply);
+        }
+    }
+
+    function emitBatchMetadataUpdate(
+        uint256 fromTokenId,
+        uint256 toTokenId
+    ) public onlyOwner {
+        emit BatchMetadataUpdate(fromTokenId, toTokenId);
+    }
 
     function updateExternalMetadata(
         address externalMetadata_

@@ -12,8 +12,7 @@ function randomRange(min, max, seed) {
 
 const urlInfo = window.location.hash.substr(1).split("-");
 let tokenId = parseInt(urlInfo[0]);
-let backgroundOffset = urlInfo.length > 1 ? parseInt(urlInfo[1]) : 0;
-
+let backgroundOffset = window.backgroundOffset || 0;
 if (!tokenId) {
   tokenId = Math.floor(Math.random() * 150) + 1;
   // if (!tokenId) {
@@ -22,6 +21,7 @@ if (!tokenId) {
   //   );
   // }
 }
+console.log({ tokenId });
 
 let seed = solidityKeccak256(["uint256"], [tokenId]);
 if (
@@ -52,21 +52,36 @@ var amount = R.int(100, 500);
 var elWidth = R.int(2, 300);
 var elHeight = R.int(2, 300);
 var angle = R.int(0, 360);
-var showRectangles = R.int(0, 1) == 0 ? true : false;
-var rotateAllRectangles = R.int(0, 1) == 0 ? true : false;
-var showPolygons = !showRectangles ? true : R.int(0, 1) == 0 ? true : false;
-var showHole = R.int(0, 10) == 0 ? true : false;
-var showGrid = R.int(0, 3) == 0 ? true : false;
-var showStar = R.int(0, 10) == 0 ? true : false;
+
+const showHole = randomRange(0, 10, seed) == 0;
+
+let configSeed = solidityKeccak256(["bytes32"], [seed]);
+const showRectangles = showHole || randomRange(0, 1, configSeed) == 0;
+
+configSeed = solidityKeccak256(["bytes32"], [configSeed]);
+const showPolygons =
+  showHole || !showRectangles || randomRange(0, 1, configSeed) == 0;
+
+configSeed = solidityKeccak256(["bytes32"], [configSeed]);
+const showGrid = randomRange(0, 3, configSeed) == 0;
+
+configSeed = solidityKeccak256(["bytes32"], [configSeed]);
+const showStar = randomRange(0, 10, configSeed) == 0;
+
+configSeed = solidityKeccak256(["bytes32"], [configSeed]);
+const showFrame = randomRange(0, 2, configSeed) == 0;
+
+configSeed = solidityKeccak256(["bytes32"], [configSeed]);
+const rotateAllRectangles = randomRange(0, 1, configSeed) == 0;
+
 let gridVal = R.int(5, 10);
 let gridMargin = R.int(1, 3);
 let gridCLipType = R.int(0, 2);
-var showFrame = R.int(0, 2) == 0 ? true : false;
 let frameAmount = R.int(4, 50);
-if (showHole) {
-  showRectangles = true;
-  showPolygons = true;
-}
+// if (showHole) {
+//   showRectangles = true;
+//   showPolygons = true;
+// }
 
 let selectionObjectsOrigin = {
   x: R.int(margin, win_w - margin * 2),
@@ -230,7 +245,8 @@ function PolygonObject() {
   };
 }
 
-function renderSelections() {
+function renderSelections(treatAllAsTrue = false) {
+  console.log("renderSelections");
   // let solution_paths;
   let clip_paths;
   let subj_paths = [
@@ -243,7 +259,7 @@ function renderSelections() {
   ];
 
   // rectangles
-  if (showRectangles) {
+  if (showRectangles || treatAllAsTrue) {
     let sx = selectionObjectsOrigin.x;
     let sy = selectionObjectsOrigin.y;
 
@@ -268,7 +284,7 @@ function renderSelections() {
   }
 
   // polygons
-  if (showPolygons) {
+  if (showPolygons || treatAllAsTrue) {
     let poly = polygonObjects[0];
     poly.makePolygon();
 
@@ -285,7 +301,7 @@ function renderSelections() {
   }
 
   // grid
-  if (showGrid) {
+  if (showGrid || treatAllAsTrue) {
     let gridSize = largestSide / gridVal;
     let clip_paths = [[]];
     for (let i = 0; i <= largestSide / gridSize; i++) {
@@ -315,7 +331,7 @@ function renderSelections() {
   }
 
   // star
-  if (showStar) {
+  if (showStar || treatAllAsTrue) {
     let largestSide = win_w >= win_h ? win_w : win_h;
     let gridSize = largestSide / gridVal;
     let clip_paths = [[]];
@@ -335,7 +351,7 @@ function renderSelections() {
   }
 
   // frames
-  if (showFrame) {
+  if (showFrame || treatAllAsTrue) {
     let clip_paths = [[]];
     for (let i = 0; i < frameAmount; i += 2) {
       let v = i * R.int(2, 20);
@@ -378,7 +394,7 @@ function renderSelections() {
   subj_paths = clipPathToAll(subj_paths, clip_paths, "intersection");
 
   //center hole
-  if (showHole) {
+  if (showHole || treatAllAsTrue) {
     let ch_w = win_w / 2 + selectionObjects[0].wR * margin;
     let ch_h = win_h / 2 + selectionObjects[0].hR * margin;
     let ch_x = (win_w - ch_w) / 2;
@@ -397,13 +413,12 @@ function renderSelections() {
   let svgPath = paths2string(subj_paths);
 
   // if path empty show all styles
-  if (svgPath == "M0,0") {
-    showHole = true;
-    showGrid = true;
-    showStar = true;
-    showRectangles = true;
-    showFrame = true;
-    renderSelections();
+  if (svgPath == "M0,0" && !treatAllAsTrue) {
+    renderSelections(true);
+  } else if (svgPath == "M0,0") {
+    console.error(
+      `empty path on token ID after setting treatAllAsTrue ${tokenId}`
+    );
   } else {
     document.querySelector("#selectionPath").setAttribute("d", svgPath);
   }
@@ -496,7 +511,7 @@ function setBg(seed) {
   const solidColor = randomRange(0, 2, seed);
   const solidColorString = solidsArray[solidColor];
   seed = solidityKeccak256(["bytes32"], [seed]);
-  const solidOverGrad = randomRange(0, 1, seed) == 0 ? true : false;
+  const solidOverGrad = randomRange(0, 10, seed) == 0 ? true : false;
   seed = solidityKeccak256(["bytes32"], [seed]);
   const grayOverColor = randomRange(0, 5, seed) == 0 ? true : false;
   seed = solidityKeccak256(["bytes32"], [seed]);
@@ -515,10 +530,10 @@ function setBg(seed) {
       seed = solidityKeccak256(["bytes32"], [seed]);
       gradAngle = randomRange(0, 90, seed);
       seed = solidityKeccak256(["bytes32"], [seed]);
-      const gray1Val = randomRange(0, 150);
+      const gray1Val = randomRange(0, 150, seed);
       const gray1 = `rgb(${gray1Val},${gray1Val},${gray1Val})`;
       seed = solidityKeccak256(["bytes32"], [seed]);
-      const gray2Val = randomRange(150, 255);
+      const gray2Val = randomRange(150, 255, seed);
       const gray2 = `rgb(${gray2Val},${gray2Val},${gray2Val})`;
       finalColor = `background: linear-gradient(${gradAngle}deg, ${gray1} 0%, ${gray2} 100%)`;
     } else {
@@ -526,7 +541,6 @@ function setBg(seed) {
       gradAngle = randomRange(0, 90, seed);
       seed = solidityKeccak256(["bytes32"], [seed]);
       dark = randomRange(100, 150, seed);
-      console.log({ dark });
       seed = solidityKeccak256(["bytes32"], [seed]);
       let color1R = randomRange(50, dark, seed);
       seed = solidityKeccak256(["bytes32"], [seed]);

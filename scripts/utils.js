@@ -22,7 +22,7 @@ const getPathABI = async (name) => {
   var savePath = path.join(
     __dirname,
     "contractData",
-    "ABI-" + String(networkinfo["name"]) + "-" + String(name) + ".json"
+    "ABI-" + String(networkinfo["chainId"]) + "-" + String(name) + ".json"
   );
   return savePath;
 };
@@ -37,7 +37,7 @@ const getPathAddress = async (name) => {
   var savePath = path.join(
     __dirname,
     "contractData",
-    String(networkinfo["name"]) + "-" + String(name) + ".json"
+    String(networkinfo["chainId"]) + "-" + String(name) + ".json"
   );
   return savePath;
 };
@@ -226,7 +226,6 @@ async function copyABI(name, contractName) {
   const abi = parsedABI["abi"];
 
   const newContent = { contractName, abi };
-
   var copy = path.join(
     __dirname,
     "contractData",

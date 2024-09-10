@@ -6,7 +6,6 @@ import "base64-sol/base64.sol";
 import "./StringsExtended.sol";
 import "./Selection.sol";
 import "./IFileStore.sol";
-import "hardhat/console.sol";
 
 /// @title ExternalMetadata
 /// @notice
@@ -38,8 +37,8 @@ contract ExternalMetadata is Ownable {
         "background-size: 8px 8px;"
         "background-position: 0 0, 0 4px, 4px -4px, -4px 0px;";
 
-    mapping(uint256 => uint256) backgroundStateOffsets; // tokenId => backgroundState
     address payable public selection;
+    string public filename = "selection_14_58.js.gz";
 
     constructor() {}
 
@@ -47,6 +46,10 @@ contract ExternalMetadata is Ownable {
         address payable selection_
     ) public onlyOwner {
         selection = selection_;
+    }
+
+    function updateFilename(string memory filename_) public onlyOwner {
+        filename = filename_;
     }
 
     function getBackgroundOffset(
@@ -120,9 +123,13 @@ contract ExternalMetadata is Ownable {
                             htmlStart,
                             "<script>window.location.hash=",
                             StringsExtended.toString(tokenId),
+                            ";window.backgroundOffset=",
+                            StringsExtended.toString(
+                                getBackgroundOffset(tokenId)
+                            ),
                             ";</script>",
                             '<script type="text/javascript+gzip" src="data:text/javascript;base64,',
-                            fileStore.getFile("selection_.js.gz").read(),
+                            fileStore.getFile(filename).read(),
                             '"></script>',
                             '<script src="data:text/javascript;base64,',
                             fileStore.getFile("gunzipScripts-0.0.1.js").read(),
@@ -147,25 +154,15 @@ contract ExternalMetadata is Ownable {
             "rgb(50,50,123)"
         ];
         uint256 solidColor = randomRange(0, 2, originalSeed);
-        console.log("solidColor");
-        console.log(solidColor);
         string memory solidColorString = string(
             abi.encodePacked("background-color:", solidsArray[solidColor])
         );
         bytes32 seed = keccak256(abi.encodePacked(originalSeed));
-        console.log("seed_after_one_hash");
-        console.logBytes32(seed);
-        bool solidOverGrad = randomRange(0, 1, seed) == 0 ? true : false;
-        console.log("solidOverGrad");
-        console.log(solidOverGrad);
+        bool solidOverGrad = randomRange(0, 10, seed) == 0 ? true : false;
         seed = keccak256(abi.encodePacked(seed));
         bool grayOverColor = randomRange(0, 5, seed) == 0 ? true : false;
         seed = keccak256(abi.encodePacked(seed));
         uint256 bgStyleRand = randomRange(1, 10, seed);
-        console.log("bgstylerand seed");
-        console.logBytes32(seed);
-        console.log("bgStyleRand");
-        console.log(bgStyleRand);
         uint256 backgroundOffset = getBackgroundOffset(tokenId);
         uint256 totalStyles = 4;
 
@@ -233,8 +230,6 @@ contract ExternalMetadata is Ownable {
                 seed = keccak256(abi.encodePacked(seed));
                 uint256 dark = randomRange(100, 150, seed);
 
-                console.log("dark");
-                console.log(dark);
                 seed = keccak256(abi.encodePacked(seed));
 
                 uint256 color1R = randomRange(50, dark, seed);
@@ -345,50 +340,59 @@ contract ExternalMetadata is Ownable {
             );
     }
 
-    // '<!-- importing and applying randomly generated color data from smart contract -->',
-
-    // '<script type="text/javascript" src="data-from-contract.js"></script>',
-    // '<script type="text/javascript">',
-
-    //   'window.onload = function()',
-    //   '{',
-    //     'let bg = document.body.style;',
-
-    //     'let randNumber = R.int(1,150);',
-    //     'document.querySelector(\'text\').innerHTML = randNumber;',
-
-    //     'toggleBg(bg);',
-
-    //     'function toggleBg(bg)',
-    //     '{',
-    //       'if (bgState == 0 || bgState == 1)',
-    //       '{',
-    //         'bg.background = solidOverGrad ? solidColor : grayOverColor ? `linear-gradient(${gradAngle}deg, ${gray1} 0%, ${gray2} 100%)` : `linear-gradient(${gradAngle}deg, ${color1} 0%, ${color2} 100%)`;',
-
-    //       '}',
-    //       'else if (bgState == 2) { bg.background = \'white\'; }',
-    //       'else if (bgState == 3) { bg.background = \'black\'; }',
-    //       'else if (bgState == 4)',
-    //       '{',
-    //         'bg.background = \'url("blank.png") repeat\';',
-    //         'bg.backgroundSize = \'8px\';',
-    //       '}',
-    //       'if (bgState == 4) { bgState = 0 } else { bgState++ };',
-    //     '}',
-    //   '}',
-    // '</script>',
-
     /// @dev generates the attributes as JSON String
     function getAttributes(
         uint256 tokenId
     ) public pure returns (string memory) {
+        bytes32 seed = keccak256(abi.encodePacked(tokenId));
+        bool showHole = randomRange(0, 10, seed) == 0;
+
+        bytes32 configSeed = keccak256(abi.encodePacked(seed));
+        bool showRectangles = showHole || randomRange(0, 1, configSeed) == 0;
+
+        configSeed = keccak256(abi.encodePacked(configSeed));
+        bool showPolygons = showHole ||
+            !showRectangles ||
+            randomRange(0, 1, configSeed) == 0;
+
+        configSeed = keccak256(abi.encodePacked(configSeed));
+        bool showGrid = randomRange(0, 3, configSeed) == 0;
+
+        configSeed = keccak256(abi.encodePacked(configSeed));
+        bool showStar = randomRange(0, 10, configSeed) == 0;
+
+        configSeed = keccak256(abi.encodePacked(configSeed));
+        bool showFrame = randomRange(0, 2, configSeed) == 0;
+
+        configSeed = keccak256(abi.encodePacked(configSeed));
+        bool rotateAllRectangles = randomRange(0, 1, configSeed) == 0;
+
+        // showRectangles, showPolygons, showHole, showGrid, showStar, showFrame
         return
             string(
                 abi.encodePacked(
                     "[",
-                    '{"trait_type":"tokenId","value":"',
-                    StringsExtended.toString(tokenId),
-                    '"}',
+                    '{"trait_type":"showRectangles","value":',
+                    (showRectangles ? "true" : "false"),
+                    "},",
+                    '{"trait_type":"showPolygons","value":',
+                    (showPolygons ? "true" : "false"),
+                    "},",
+                    '{"trait_type":"showHole","value":',
+                    (showHole ? "true" : "false"),
+                    "},",
+                    '{"trait_type":"showGrid","value":',
+                    (showGrid ? "true" : "false"),
+                    "},",
+                    '{"trait_type":"showStar","value":',
+                    (showStar ? "true" : "false"),
+                    "},",
+                    '{"trait_type":"showFrame","value":',
+                    (showFrame ? "true" : "false"),
+                    "},",
+                    '{"trait_type":"rotateAllRectangles","value":',
+                    (rotateAllRectangles ? "true" : "false"),
+                    "}",
                     "]"
                 )
             );

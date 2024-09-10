@@ -1,33 +1,40 @@
-const { ethers } = require("hardhat");
-
 async function main() {
-  const { deployMetadata, verifyContracts, copyABI, saveAddress } =
-    await import("./utils.js");
+  const {
+    deployMetadata,
+    verifyContracts,
+    copyABI,
+    saveAddress,
+    initContracts,
+  } = await import("./utils.js");
 
   // Deploy the metadata contract
   const { externalMetadata } = await deployMetadata(false);
   const returnObject = {
     ExternalMetadata: externalMetadata,
   };
-  // Get the currently deployed selection contract
-  const Selection = await ethers.getContractFactory("Selection");
 
-  const network = await ethers.provider.getNetwork();
+  // Get the currently deployed selection contract
+  const { Selection } = await initContracts(true);
 
   // update ExternalMetadata
-  const selectionAddress = Selection.networks[network.chainId].address;
+  const selectionAddress = Selection.address;
+
+  // save selection in metadata
+  await externalMetadata.updateSelectionAddress(selectionAddress);
+  console.log(
+    "ExternalMetadata updated with Selection Address " + selectionAddress
+  );
 
   await copyABI("ExternalMetadata");
   const contract = returnObject.ExternalMetadata;
   await saveAddress(contract, "ExternalMetadata");
 
-  const selection = Selection.attach(selectionAddress);
-  await selection.updateExternalMetadata(
+  await Selection.updateExternalMetadata(
     returnObject["ExternalMetadata"].address
   );
-
-  await selection.emitBatchMetadataUpdate();
-  console.log("Batch metadata update emitted");
+  // const totalSupply = await selection.totalSupply();
+  // await selection.emitBatchMetadataUpdate(1, totalSupply);
+  // console.log("Batch metadata update emitted");
 
   const verificationData = [
     {
