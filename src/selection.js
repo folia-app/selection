@@ -11,13 +11,16 @@ function randomRange(min, max, seed) {
 }
 
 const urlInfo = window.location.hash.substr(1).split("-");
-const tokenId = parseInt(urlInfo[0]);
+let tokenId = parseInt(urlInfo[0]);
 let backgroundOffset = urlInfo.length > 1 ? parseInt(urlInfo[1]) : 0;
 
 if (!tokenId) {
-  throw new Error(
-    "no token id, please add to url like https://website.domain#tokenId"
-  );
+  tokenId = Math.floor(Math.random() * 150) + 1;
+  // if (!tokenId) {
+  //   throw new Error(
+  //     "no token id, please add to url like https://website.domain#tokenId"
+  //   );
+  // }
 }
 
 let seed = solidityKeccak256(["uint256"], [tokenId]);
