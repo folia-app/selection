@@ -14,18 +14,18 @@ const urlInfo = window.location.hash.substr(1).split("-");
 let tokenId = parseInt(urlInfo[0]);
 let backgroundOffset = 0;
 let backgroundOverride =
-  window.backgroundOverride || urlInfo.length > 1
-    ? parseInt(urlInfo[1])
-    : false;
+  typeof window.backgroundOverride !== "undefined"
+    ? window.backgroundOverride
+    : urlInfo.length > 1
+      ? parseInt(urlInfo[1])
+      : false;
+if (backgroundOverride > 3) {
+  backgroundOverride = false;
+}
 if (!tokenId) {
   tokenId = Math.floor(Math.random() * 150) + 1;
-  // if (!tokenId) {
-  //   throw new Error(
-  //     "no token id, please add to url like https://website.domain#tokenId"
-  //   );
-  // }
 }
-console.log({ tokenId });
+console.log({ tokenId }); // TODO: remove comments before mainnet
 
 let seed = solidityKeccak256(["uint256"], [tokenId]);
 if (
@@ -523,9 +523,17 @@ function setBg(seed) {
 
   const totalStyles = 4;
   let bgState =
-    ((bgStyleRand <= 7 ? 0 : bgStyleRand <= 8 ? 1 : bgStyleRand <= 9 ? 2 : 3) +
-      backgroundOffset) %
-    totalStyles;
+    typeof backgroundOverride !== "boolean"
+      ? backgroundOverride
+      : ((bgStyleRand <= 7
+          ? 0
+          : bgStyleRand <= 8
+            ? 1
+            : bgStyleRand <= 9
+              ? 2
+              : 3) +
+          backgroundOffset) %
+        totalStyles;
   let finalColor, gradAngle, dark;
   if (bgState == 0) {
     if (solidOverGrad) {
@@ -579,6 +587,7 @@ function setBg(seed) {
         background-size: 8px 8px;
         background-position: 0 0, 0 4px, 4px -4px, -4px 0px;`;
   }
+  console.log({ bgState, finalColor });
   document.getElementsByTagName("svg")[0].style = finalColor;
 }
 

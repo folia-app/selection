@@ -70,6 +70,7 @@ contract Selection is Ownable, ERC2981, ERC721 {
 
     function changeBackground(uint256 tokenId, uint256 override_) public {
         require(_isApprovedOrOwner(_msgSender(), tokenId), "Not approved");
+        require(override_ <= 3, "invalid override number");
         backgroundOverride[tokenId] = override_;
         backgroundOverriden[tokenId] = true;
         emit BackgroundUpdated(tokenId, override_);

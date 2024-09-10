@@ -38,7 +38,7 @@ contract ExternalMetadata is Ownable {
         "background-position: 0 0, 0 4px, 4px -4px, -4px 0px;";
 
     address payable public selection;
-    string public filename = "selection_15_35.js.gz";
+    string public filename = "selection_16_14.js.gz";
 
     constructor() {}
 
@@ -84,8 +84,8 @@ contract ExternalMetadata is Ownable {
                             '{"name":"Selection No. ',
                             getName(tokenId),
                             '",',
-                            '"description": "In Selection, the focus of the work is focus itself.\n\n'
-                            "The project is a fully on-chain generated collection of selection areas, the familiar marching ants conceived by Bill Atkinson which have become such a ubiquitous part of interface culture.\n"
+                            '"description": "In Selection, the focus of the work is focus itself.\\n\\n',
+                            "The project is a fully on-chain generated collection of selection areas, the familiar marching ants conceived by Bill Atkinson which have become such a ubiquitous part of interface culture.\\n",
                             "Selection is released in partnership with Folia.",
                             '","image": "',
                             svg,
@@ -174,13 +174,14 @@ contract ExternalMetadata is Ownable {
             bool backroundOverridden,
             uint256 backgroundOverride
         ) = getBackgroundOverride(tokenId);
-        uint256 totalStyles = 4;
 
         // 0: color
         // 1: white
         // 2: black
         // 3: transparent
-        uint256 bgStyle = bgStyleRand <= 7
+        uint256 bgStyle = backroundOverridden
+            ? backgroundOverride
+            : bgStyleRand <= 7
             ? 0
             : (bgStyleRand <= 8 ? 1 : (bgStyleRand <= 9 ? 2 : 3));
         string memory finalColor;
