@@ -29,6 +29,7 @@ const config = {
   },
   networks: {
     mainnet: {
+      url: "https://mainnet.infura.io/v3/" + process.env.INFURA_API_KEY,
       accounts: { mnemonic: process.env.deploymentKey },
       gasPrice: 10_000_000_000, // 10 GWEI
       chainId: 1,
