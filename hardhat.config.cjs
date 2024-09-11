@@ -35,7 +35,7 @@ const config = {
       chainId: 1,
     },
     hardhat: {
-      accounts: { mnemonic: process.env.deploymentKey },
+      accounts: { mnemonic: process.env.deploymentKey, initialIndex: 1 },
       gasPrice: 1_000_000_000,
       blockGasLimit: 20_000_000,
       chainId: 12345,
