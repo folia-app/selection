@@ -28,6 +28,11 @@ const config = {
     ],
   },
   networks: {
+    mainnet: {
+      accounts: { mnemonic: process.env.deploymentKey },
+      gasPrice: 10_000_000_000, // 10 GWEI
+      chainId: 1,
+    },
     hardhat: {
       accounts: { mnemonic: process.env.deploymentKey },
       gasPrice: 1_000_000_000,
