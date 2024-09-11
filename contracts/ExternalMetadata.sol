@@ -38,7 +38,7 @@ contract ExternalMetadata is Ownable {
         "background-position: 0 0, 0 4px, 4px -4px, -4px 0px;";
 
     address payable public selection;
-    string public filename = "selection_16_14.js.gz";
+    string public filename = "selection.js.gz";
 
     constructor() {}
 
