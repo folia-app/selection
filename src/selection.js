@@ -25,7 +25,6 @@ if (backgroundOverride > 3) {
 if (!tokenId) {
   tokenId = Math.floor(Math.random() * 150) + 1;
 }
-console.log({ tokenId }); // TODO: remove comments before mainnet
 
 let seed = solidityKeccak256(["uint256"], [tokenId]);
 if (
@@ -94,10 +93,8 @@ let selectionObjectsOrigin = {
 let selectionObjects = generateEmptySelectionObjects();
 let polygonObjects = generatePolygonObjects();
 
-// window.removeEventListener("load", init); // TODO: try this if init is called many times
 window.onload = init;
 function init() {
-  console.log("init"); // TODO: remove before mainnet
   svg = document.querySelector("svg");
 
   svg.onclick = function () {
@@ -194,7 +191,6 @@ function PolygonObject() {
       } else {
         polX += -1 * this.stepVar + this.rnArray[i * 2] * this.stepVar * 2;
         polY += -1 * this.stepVar + this.rnArray[i * 2 + 1] * this.stepVar * 2;
-        // -1000 + 0.4 * 1000 * 2 - 1000 + 0.3 * 1000 * 2; // TODO: add this back?
       }
 
       if (this.applyMargin) {
@@ -250,7 +246,6 @@ function PolygonObject() {
 }
 
 function renderSelections(treatAllAsTrue = false) {
-  console.log("renderSelections");
   // let solution_paths;
   let clip_paths;
   let subj_paths = [
@@ -522,7 +517,6 @@ function setBg(seed) {
   const bgStyleRand = randomRange(1, 10, seed);
 
   const totalStyles = 4;
-  // console.log({ backgroundOffset });
   let bgState =
     typeof backgroundOverride !== "boolean"
       ? backgroundOverride
@@ -588,19 +582,16 @@ function setBg(seed) {
         background-size: 8px 8px;
         background-position: 0 0, 0 4px, 4px -4px, -4px 0px;`;
   }
-  console.log({ bgState, finalColor });
   document.getElementsByTagName("svg")[0].style = finalColor;
 }
 
 let resizeTimer;
 window.onresize = function () {
-  console.log("clearTimeout", resizeTimer); // TODO: remove before mainnet
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(resizeEnded, 500);
 };
 
 function resizeEnded() {
-  console.log("resizeEnded"); // TODO: remove before mainnet
   win_w = window.innerWidth; // tool width added
   win_h = window.innerHeight;
   largestSide = win_w >= win_h ? win_w : win_h;
