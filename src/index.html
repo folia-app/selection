@@ -27,7 +27,7 @@
     </style>
     <meta http-equiv="X-UA-Compatible" content="IE=9">
     <script type="module">
-      import './selection.js'
+      // import './selection.js'
     </script>
     <script>
       // setTimeout(() => {
@@ -42,6 +42,7 @@
     </script>
 </head>
 <body>
+    <script type="module" src="./selection.js"></script>
     <svg xmlns="http://www.w3.org/2000/svg" color="#000000" style="background-color:transparent;">
 	<defs>
 		<pattern id="diagonalHatch" patternUnits="userSpaceOnUse" patternTransform="translate(0)" width="8" height="8">
@@ -53,7 +54,7 @@
 			                    dur="2s" repeatCount="indefinite"/>
 		</pattern>
 	</defs>
-	<path id="selectionPath" d="M-2,2 l4,-4 M0,8 l8,-8 M6,10 l4,-4" stroke="url(#diagonalHatch)" fill="none" ></path>
+	<path id="selectionPath"   d="M-2,2 l4,-4 M0,8 l8,-8 M6,10 l4,-4" stroke="url(#diagonalHatch)" fill="none" ></path>
 	</svg>
 </body>
 </html>

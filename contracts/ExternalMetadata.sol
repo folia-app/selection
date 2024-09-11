@@ -111,7 +111,7 @@ contract ExternalMetadata is Ownable {
         '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Selection, 2024 - Jan Robert Leegte</title><style>html,body{width:100vw;height:100vh}body{overflow:hidden}svg{width:100vw;height:100vh;position:absolute;inset:0}</style><meta http-equiv="X-UA-Compatible" content="IE=9">';
 
     string htmlClose =
-        '</head><body> <svg color="#000" style="background-color:#0000"><defs><pattern id="diagonalHatch" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#fff"/><path d="m-2 2 4-4M0 8l8-8M6 10l4-4" style="stroke:#000;stroke-width:3px"/><animateTransform type="translate" from="0 0" to="8 8" begin="0" dur="2s" attributeType="xml" attributeName="patternTransform" repeatCount="indefinite"/></pattern></defs><path id="selectionPath" d="" stroke="url(#diagonalHatch)" fill="none"/></svg> </body></html>';
+        '</head><body> <svg color="#000" style="background-color:#0000"><defs><pattern patternTransform="translate(0)" id="diagonalHatch" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#fff"/><path d="m-2 2 4-4M0 8l8-8M6 10l4-4" style="stroke:#000;stroke-width:3px"/><animateTransform type="translate" from="0 0" to="8 8" begin="0" dur="2s" attributeType="xml" attributeName="patternTransform" repeatCount="indefinite"/></pattern></defs><path id="selectionPath" d="" stroke="url(#diagonalHatch)" fill="none"/></svg> </body></html>';
 
     function getHTML(uint256 tokenId) public view returns (string memory) {
         IFileStore fileStore = IFileStore(
