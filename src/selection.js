@@ -70,10 +70,10 @@ configSeed = solidityKeccak256(["bytes32"], [configSeed]);
 const showGrid = randomRange(0, 3, configSeed) == 0;
 
 configSeed = solidityKeccak256(["bytes32"], [configSeed]);
-const showStar = randomRange(0, 10, configSeed) == 0;
+const showStar = randomRange(0, 15, configSeed) == 0;
 
 configSeed = solidityKeccak256(["bytes32"], [configSeed]);
-const showFrame = randomRange(0, 2, configSeed) == 0;
+const showFrame = randomRange(0, 3, configSeed) == 0;
 
 configSeed = solidityKeccak256(["bytes32"], [configSeed]);
 const rotateAllRectangles = randomRange(0, 1, configSeed) == 0;
@@ -522,6 +522,7 @@ function setBg(seed) {
   const bgStyleRand = randomRange(1, 10, seed);
 
   const totalStyles = 4;
+  // console.log({ backgroundOffset });
   let bgState =
     typeof backgroundOverride !== "boolean"
       ? backgroundOverride

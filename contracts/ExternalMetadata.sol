@@ -84,8 +84,8 @@ contract ExternalMetadata is Ownable {
                             '{"name":"Selection No. ',
                             getName(tokenId),
                             '",',
-                            '"description": "In Selection, the focus of the work is focus itself.\\n\\n',
-                            "The project is a fully on-chain generated collection of selection areas, the familiar marching ants conceived by Bill Atkinson which have become such a ubiquitous part of interface culture.\\n",
+                            '"description": "In Selection, the focus of the work is focus itself.\\n\\n\\n',
+                            "The project is a fully on-chain generated collection of selection areas, the familiar marching ants conceived by Bill Atkinson which have become such a ubiquitous part of interface culture.\\n\\n\\n",
                             "Selection is released in partnership with Folia.",
                             '","image": "',
                             svg,
@@ -368,39 +368,33 @@ contract ExternalMetadata is Ownable {
         bool showGrid = randomRange(0, 3, configSeed) == 0;
 
         configSeed = keccak256(abi.encodePacked(configSeed));
-        bool showStar = randomRange(0, 10, configSeed) == 0;
+        bool showStar = randomRange(0, 15, configSeed) == 0;
 
         configSeed = keccak256(abi.encodePacked(configSeed));
-        bool showFrame = randomRange(0, 2, configSeed) == 0;
-
-        configSeed = keccak256(abi.encodePacked(configSeed));
-        bool rotateAllRectangles = randomRange(0, 1, configSeed) == 0;
+        bool showFrame = randomRange(0, 3, configSeed) == 0;
 
         // showRectangles, showPolygons, showHole, showGrid, showStar, showFrame
         return
             string(
                 abi.encodePacked(
                     "[",
-                    '{"trait_type":"showRectangles","value":"',
-                    (showRectangles ? "true" : "false"),
+                    '{"trait_type":"Rectangles","value":"',
+                    (showRectangles ? "Show" : "Hide"),
                     '"},',
-                    '{"trait_type":"showPolygons","value":"',
-                    (showPolygons ? "true" : "false"),
+                    '{"trait_type":"Polygon","value":"',
+                    (showPolygons ? "Show" : "Hide"),
                     '"},',
-                    '{"trait_type":"showHole","value":"',
-                    (showHole ? "true" : "false"),
+                    '{"trait_type":"Hole","value":"',
+                    (showHole ? "Show" : "Hide"),
                     '"},',
-                    '{"trait_type":"showGrid","value":"',
-                    (showGrid ? "true" : "false"),
+                    '{"trait_type":"Grid","value":"',
+                    (showGrid ? "Show" : "Hide"),
                     '"},',
-                    '{"trait_type":"showStar","value":"',
-                    (showStar ? "true" : "false"),
+                    '{"trait_type":"Star","value":"',
+                    (showStar ? "Show" : "Hide"),
                     '"},',
-                    '{"trait_type":"showFrame","value":"',
-                    (showFrame ? "true" : "false"),
-                    '"},',
-                    '{"trait_type":"rotateAllRectangles","value":"',
-                    (rotateAllRectangles ? "true" : "false"),
+                    '{"trait_type":"Ornament","value":"',
+                    (showFrame ? "Show" : "Hide"),
                     '"}',
                     "]"
                 )
