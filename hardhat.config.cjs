@@ -30,12 +30,12 @@ const config = {
   networks: {
     mainnet: {
       url: "https://mainnet.infura.io/v3/" + process.env.INFURA_API_KEY,
-      accounts: { mnemonic: process.env.deploymentKey },
+      accounts: { mnemonic: process.env.deploymentKey, initialIndex: 1 },
       gasPrice: 10_000_000_000, // 10 GWEI
       chainId: 1,
     },
     hardhat: {
-      accounts: { mnemonic: process.env.deploymentKey, initialIndex: 1 },
+      accounts: { mnemonic: process.env.deploymentKey },
       gasPrice: 1_000_000_000,
       blockGasLimit: 20_000_000,
       chainId: 12345,
