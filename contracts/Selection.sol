@@ -2,13 +2,35 @@
 
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/common/ERC2981.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "./ExternalMetadata.sol";
 
-contract Selection is Ownable, ERC2981, ERC721 {
+/*
+- - - - - - - - - - - - - - - - - -
+|                                 |
+
+|                                 |
+
+|                                 |
+
+| - - - - - - - - - - - - - - - - |
+
+
+Selection, 2024
+Jan Robert Leegte
+https://www.leegte.org
+Released in partnership with Folia.
+
+"A NFT collection where focus of the work is focus itself."
+*/
+
+/// @title Selection NFT Contract
+/// @notice https://selection.folia.app
+/// @author @okwme
+/// @dev ERC721 contract for Selection by Jan Robert Leegte with external metadata
+
+contract Selection is Ownable, ERC721 {
     bool public paused = false;
     uint256 public totalSupply = 0;
     uint256 public constant MAX_SUPPLY = 150;
@@ -87,13 +109,13 @@ contract Selection is Ownable, ERC2981, ERC721 {
 
     function supportsInterface(
         bytes4 interfaceId
-    ) public pure override(ERC2981, ERC721) returns (bool) {
+    ) public view override(ERC721) returns (bool) {
         return
             interfaceId == type(IERC165).interfaceId ||
-            interfaceId == type(IERC1155).interfaceId ||
-            interfaceId == type(IERC1155MetadataURI).interfaceId ||
-            interfaceId == type(IERC2981).interfaceId ||
-            interfaceId == bytes4(0x49064906); // IERC4906 MetadataUpdate
+            interfaceId == type(IERC721).interfaceId ||
+            interfaceId == type(IERC721Metadata).interfaceId ||
+            interfaceId == bytes4(0x49064906) || // IERC4906 MetadataUpdate
+            super.supportsInterface(interfaceId);
     }
 
     function tokenURI(uint256 id) public view override returns (string memory) {

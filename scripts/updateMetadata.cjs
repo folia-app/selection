@@ -8,7 +8,7 @@ async function main() {
   } = await import("./utils.js");
 
   // Deploy the metadata contract
-  const { externalMetadata } = await deployMetadata(false);
+  const { externalMetadata, ethFSAddress } = await deployMetadata(false);
   const returnObject = {
     ExternalMetadata: externalMetadata,
   };
@@ -39,7 +39,7 @@ async function main() {
   const verificationData = [
     {
       name: "ExternalMetadata",
-      constructorArguments: [],
+      constructorArguments: [ethFSAddress],
     },
   ];
   returnObject["verificationData"] = verificationData;

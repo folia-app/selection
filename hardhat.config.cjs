@@ -4,7 +4,6 @@ require("hardhat-contract-sizer");
 require("dotenv").config();
 require("@nomicfoundation/hardhat-verify");
 require("solidity-coverage");
-
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */
@@ -31,7 +30,7 @@ const config = {
     mainnet: {
       url: "https://mainnet.infura.io/v3/" + process.env.INFURA_API_KEY,
       accounts: { mnemonic: process.env.deploymentKey, initialIndex: 1 },
-      gasPrice: 10_000_000_000, // 10 GWEI
+      gasPrice: 12_000_000_000, // 12 GWEI
       chainId: 1,
     },
     hardhat: {

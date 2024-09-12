@@ -2,28 +2,17 @@
   "name": "selection",
   "version": "1.0.0",
   "license": "MIT",
-  "targets": {
-    "iframe": {
-      "source": "src/index.html",
-      "optimize": true
-    },
-    "onchain": {
-      "source": "src/selection.js",
-      "optimize": true
-    }
-  },
+  "type": "module",
   "source": "src/index.js",
-  "iframe": "docs/index.html",
-  "onchain": "docs/selection.js",
   "scripts": {
-    "prepare": "husky",
     "build": "rm -rf .parcel-cache && rm -rf docs && yarn parcel build",
-    "dev": "rm -rf .parcel-cache && rm -rf docs && yarn parcel watch src/index.js",
-    "serve": "rm -rf .parcel-cache && yarn parcel src/index.html --open",
     "chain": "hardhat node",
     "deploy": "hardhat run scripts/deploy.cjs",
-    "test": "hardhat test",
-    "precommit": "echo 'husky is working : )' && lint-staged && yarn build && git add docs"
+    "dev": "rm -rf .parcel-cache && rm -rf docs && yarn parcel watch src/index.js",
+    "precommit": "echo 'husky is working : )' && lint-staged && yarn build && git add docs",
+    "prepare": "husky",
+    "serve": "rm -rf .parcel-cache && yarn parcel src/index.html --open",
+    "test": "hardhat test"
   },
   "lint-staged": {
     "*.{js,jsx}": [
@@ -35,6 +24,12 @@
     ],
     "**/*": "prettier --write --ignore-unknown"
   },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead",
+    "not ie 11"
+  ],
   "eslintConfig": {
     "env": {
       "amd": true,
@@ -69,13 +64,7 @@
     "root": true
   },
   "dependencies": {
-    "@types/sinon-chai": "^3.2.3",
-    "chai": "^5.1.1",
-    "ethers": "^5.0.0",
-    "ethers-utils": "^2.1.11",
-    "ethfs": "^0.2.9",
-    "puppeteer": "^23.3.0",
-    "viem": "^2.21.2"
+    "ethers": "^5.7.0"
   },
   "devDependencies": {
     "@babel/core": "^7.24.0",
@@ -92,6 +81,7 @@
     "@parcel/transformer-inline": "^2.12.0",
     "@parcel/transformer-inline-string": "2.12.0",
     "base64-sol": "^1.1.0",
+    "chai": "4.3.6",
     "dotenv": "^16.0.1",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
@@ -103,17 +93,24 @@
     "lint-staged": "^15.2.2",
     "parcel": "^2.12.0",
     "prettier": "3.2.5",
+    "puppeteer": "^23.3.0",
     "solidity-coverage": "^0.8.6",
     "stream-browserify": "^3.0.0",
     "string_decoder": "^1.3.0",
+    "viem": "^2.21.2",
     "vm-browserify": "^1.1.2",
     "xmldom": "^0.6.0"
   },
-  "type": "module",
-  "browserslist": [
-    "> 1%",
-    "last 2 versions",
-    "not dead",
-    "not ie 11"
-  ]
+  "iframe": "docs/index.html",
+  "onchain": "docs/selection.js",
+  "targets": {
+    "iframe": {
+      "source": "src/index.html",
+      "optimize": true
+    },
+    "onchain": {
+      "source": "src/selection.js",
+      "optimize": true
+    }
+  }
 }

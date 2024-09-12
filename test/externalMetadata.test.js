@@ -1,6 +1,7 @@
-import { expect } from "chai";
 import hre from "hardhat";
 const { ethers } = hre;
+import { expect } from "chai";
+
 import { DOMParser } from "xmldom";
 // import { Anybody } from '../../dist/module.js'
 
@@ -11,7 +12,7 @@ import prettier from "prettier";
 describe("ExternalMetadata Tests", function () {
   this.timeout(50000000);
 
-  it.skip("has the correct selection addresses", async () => {
+  it("has the correct selection addresses", async () => {
     const { Selection: selection, ExternalMetadata: externalMetadata } =
       await deployContracts();
 
@@ -19,15 +20,24 @@ describe("ExternalMetadata Tests", function () {
     expect(selectionAddress).to.equal(selection.address);
   });
 
-  it.skip("onlyOwner functions are really only Owner", async function () {
+  it("onlyOwner functions are really only Owner", async function () {
     const [, addr1] = await ethers.getSigners();
     const { ExternalMetadata: externalMetadata } = await deployContracts();
 
-    await expect(
-      externalMetadata.connect(addr1).updateSelectionAddress(addr1.address)
-    ).to.be.revertedWith("Ownable: caller is not the owner");
-    await expect(externalMetadata.updateSelectionAddress(addr1.address)).to.not
-      .be.reverted;
+    const functionNames = [
+      "updateEthFSAddress",
+      "updateSelectionAddress",
+      "updateFilename",
+    ];
+
+    for (let i = 0; i < functionNames.length; i++) {
+      const functionName = functionNames[i];
+      await expect(
+        externalMetadata.connect(addr1)[functionName](addr1.address)
+      ).to.be.revertedWith("Ownable: caller is not the owner");
+      await expect(externalMetadata[functionName](addr1.address)).to.not.be
+        .reverted;
+    }
   });
 
   it("has valid json", async function () {
@@ -39,15 +49,15 @@ describe("ExternalMetadata Tests", function () {
     const receipt = await tx.wait();
     const events = getParsedEventLogs(receipt, selection, "Transfer");
     const tokenId = events[0].args.tokenId;
-    console.log({ tokenId });
+    const base64Json = await ExternalMetadata.getMetadata(tokenId);
 
-    const base64Json = await selection.tokenURI(tokenId);
-    console.log({ base64Json });
+    // const base64Json = await selection.tokenURI(tokenId);
+    // console.log({ base64Json });
     const utf8Json = Buffer.from(
       base64Json.replace("data:application/json;base64,", ""),
       "base64"
     ).toString("utf-8");
-    console.dir({ utf8Json }, { depth: null });
+    // console.dir({ utf8Json }, { depth: null });
     const json = JSON.parse(utf8Json);
     // console.dir({ json }, { depth: null })
     const base64SVG = json.image;
@@ -76,10 +86,7 @@ describe("ExternalMetadata Tests", function () {
     const isSVGValid = isValidSVG(SVG);
     expect(isSVGValid).to.be.true;
 
-    const attributeTokenId = json.attributes[0].value;
-    expect(parseInt(attributeTokenId)).to.equal(tokenId.toNumber());
-
-    for (let i = 150; i <= 150; i++) {
+    for (let i = 1; i <= 150; i++) {
       let svg = await ExternalMetadata.getSVG(i);
       svg = svg.replace("data:image/svg+xml;base64,", "");
       const base64ToString = (base64) => {
@@ -91,10 +98,10 @@ describe("ExternalMetadata Tests", function () {
         parser: "html",
       });
 
-      fs.writeFileSync(i + ".svg", svgString);
+      fs.writeFileSync("./dist/" + i + ".svg", svgString);
     }
 
-    const animation_url = json.animation_url;
-    console.log({ animation_url });
+    // const animation_url = json.animation_url;
+    // console.log({ animation_url });
   });
 });

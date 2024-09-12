@@ -6,7 +6,6 @@ import { promises as fs } from "fs";
 const __dirname = path.resolve();
 
 const correctPrice = ethers.utils.parseEther("0.0025");
-const splitterAddress = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
 
 const testJson = (tJson) => {
   try {
@@ -48,7 +47,7 @@ const initContracts = async (getSigners = true) => {
     [owner] = await hre.ethers.getSigners();
   }
 
-  const contractNames = ["Selection"];
+  const contractNames = ["Selection", "ExternalMetadata"];
 
   let returnObject = {};
 
@@ -79,11 +78,25 @@ const decodeUri = (decodedJson) => {
 
 const deployMetadata = async (verbose) => {
   let externalMetadata;
+  let ethFSAddress;
   try {
     // deploy ExternalMetadata
     const ExternalMetadata =
       await hre.ethers.getContractFactory("ExternalMetadata");
-    externalMetadata = await ExternalMetadata.deploy();
+    const networkinfo = await hre.ethers.provider.getNetwork();
+    if (networkinfo["chainId"] == 12345) {
+      const mockEthFS = await hre.ethers.getContractFactory("MockFileStore");
+      const mockEthFSInstance = await mockEthFS.deploy();
+      await mockEthFSInstance.deployed();
+      ethFSAddress = mockEthFSInstance.address;
+    } else if (networkinfo["chainId"] == 84543) {
+      ethFSAddress = "0xFe1411d6864592549AdE050215482e4385dFa0FB";
+    } else if (networkinfo["chainId"] == 1) {
+      ethFSAddress = "0xFe1411d6864592549AdE050215482e4385dFa0FB";
+    } else {
+      throw new Error("Unsupported network for EthFS");
+    }
+    externalMetadata = await ExternalMetadata.deploy(ethFSAddress);
     await externalMetadata.deployed();
     verbose &&
       log("ExternalMetadata Deployed at " + String(externalMetadata.address));
@@ -93,6 +106,7 @@ const deployMetadata = async (verbose) => {
 
   return {
     externalMetadata,
+    ethFSAddress,
   };
 };
 
@@ -106,7 +120,7 @@ const deployContracts = async (options) => {
   const returnObject = {};
 
   // deploy Metadata
-  const { externalMetadata } = await deployMetadata(verbose);
+  const { externalMetadata, ethFSAddress } = await deployMetadata(verbose);
 
   returnObject["ExternalMetadata"] = externalMetadata;
   const externalMetadataAddress = externalMetadata.address;
@@ -142,7 +156,7 @@ const deployContracts = async (options) => {
     const verificationData = [
       {
         name: "ExternalMetadata",
-        constructorArguments: [],
+        constructorArguments: [ethFSAddress],
       },
       {
         name: "Selection",
@@ -280,5 +294,4 @@ export {
   correctPrice,
   verifyContracts,
   deployMetadata,
-  splitterAddress,
 };

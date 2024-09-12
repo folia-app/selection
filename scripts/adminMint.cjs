@@ -6,7 +6,7 @@ async function main() {
   const [owner] = await hre.ethers.getSigners();
   const { Selection } = await initContracts(true);
 
-  const total = 30;
+  const total = 1;
 
   await Selection.adminMint(owner.address, total);
 }

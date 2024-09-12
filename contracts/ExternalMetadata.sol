@@ -7,10 +7,10 @@ import "./StringsExtended.sol";
 import "./Selection.sol";
 import "./IFileStore.sol";
 
-/// @title ExternalMetadata
-/// @notice
+/// @title ExternalMetadata for Selection NFT Contract
+/// @notice https://selection.folia.app
 /// @author @okwme
-/// @dev The updateable and replaceable contract
+/// @dev Updateable and replaceable metadata contract using EthFS for file storage
 
 contract ExternalMetadata is Ownable {
     string svgOpening =
@@ -36,11 +36,17 @@ contract ExternalMetadata is Ownable {
         "background-image: linear-gradient(45deg, #cbcccb 25%, transparent 25%), linear-gradient(-45deg, #cbcccb 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #cbcccb 75%), linear-gradient(-45deg, transparent 75%, #cbcccb 75%);"
         "background-size: 8px 8px;"
         "background-position: 0 0, 0 4px, 4px -4px, -4px 0px;";
-
+    address public ethfsAddress;
     address payable public selection;
     string public filename = "selection.js.gz";
 
-    constructor() {}
+    constructor(address ethfsAddress_) {
+        ethfsAddress = ethfsAddress_;
+    }
+
+    function updateEthFSAddress(address ethfsAddress_) public onlyOwner {
+        ethfsAddress = ethfsAddress_;
+    }
 
     function updateSelectionAddress(
         address payable selection_
@@ -93,11 +99,11 @@ contract ExternalMetadata is Ownable {
                             '"image_url": "',
                             svg,
                             '",',
-                            '"home_url": "https://selection.folia.app#"',
+                            '"home_url": "https://selection.folia.app#',
                             StringsExtended.toString(tokenId),
-                            ',"external_url": "https://selection.folia.app#"',
+                            '","external_url": "https://selection.folia.app#',
                             StringsExtended.toString(tokenId),
-                            ',"animation_url":"',
+                            '","animation_url":"',
                             getHTML(tokenId),
                             '",',
                             '"attributes": ',
@@ -116,9 +122,7 @@ contract ExternalMetadata is Ownable {
         '</head><body> <svg color="#000" style="background-color:#0000"><defs><pattern patternTransform="translate(0)" id="diagonalHatch" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#fff"/><path d="m-2 2 4-4M0 8l8-8M6 10l4-4" style="stroke:#000;stroke-width:3px"/><animateTransform type="translate" from="0 0" to="8 8" begin="0" dur="2s" attributeType="xml" attributeName="patternTransform" repeatCount="indefinite"/></pattern></defs><path id="selectionPath" d="" stroke="url(#diagonalHatch)" fill="none"/></svg> </body></html>';
 
     function getHTML(uint256 tokenId) public view returns (string memory) {
-        IFileStore fileStore = IFileStore(
-            0xFe1411d6864592549AdE050215482e4385dFa0FB // baseSepolia
-        );
+        IFileStore fileStore = IFileStore(ethfsAddress);
         (
             bool backgroundOverriden,
             uint256 backgroundOverride
@@ -210,7 +214,7 @@ contract ExternalMetadata is Ownable {
                     )
                 );
                 seed = keccak256(abi.encodePacked(seed));
-                uint256 gray2Val = randomRange(0, 150, seed);
+                uint256 gray2Val = randomRange(150, 255, seed);
                 string memory gray2 = string(
                     abi.encodePacked(
                         "rgb(",
