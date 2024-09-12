@@ -89,7 +89,7 @@ const deployMetadata = async (verbose) => {
       const mockEthFSInstance = await mockEthFS.deploy();
       await mockEthFSInstance.deployed();
       ethFSAddress = mockEthFSInstance.address;
-    } else if (networkinfo["chainId"] == 84543) {
+    } else if (networkinfo["chainId"] == 84532) {
       ethFSAddress = "0xFe1411d6864592549AdE050215482e4385dFa0FB";
     } else if (networkinfo["chainId"] == 1) {
       ethFSAddress = "0xFe1411d6864592549AdE050215482e4385dFa0FB";
